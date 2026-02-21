@@ -7,6 +7,8 @@ use tauri::{
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let handle = app.handle();
 
@@ -28,6 +30,29 @@ pub fn run() {
                             &PredefinedMenuItem::show_all(handle, None)?,
                             &PredefinedMenuItem::separator(handle)?,
                             &PredefinedMenuItem::quit(handle, None)?,
+                        ],
+                    )?,
+                    &Submenu::with_id_and_items(
+                        handle,
+                        "file-menu",
+                        "File",
+                        true,
+                        &[
+                            &MenuItem::with_id(
+                                handle,
+                                "new-note",
+                                "New Page",
+                                true,
+                                Some("CmdOrCtrl+N"),
+                            )?,
+                            &PredefinedMenuItem::separator(handle)?,
+                            &MenuItem::with_id(
+                                handle,
+                                "change-folder",
+                                "Change Folder…",
+                                true,
+                                None::<&str>,
+                            )?,
                         ],
                     )?,
                     &Submenu::with_id_and_items(
@@ -141,6 +166,8 @@ pub fn run() {
 
             app.on_menu_event(|app, event| {
                 let payload = match event.id().as_ref() {
+                    "new-note" => Some(("new_note", "")),
+                    "change-folder" => Some(("change_folder", "")),
                     "font-default" => Some(("font_change", "default")),
                     "font-baskerville" => Some(("font_change", "classical")),
                     "font-mono" => Some(("font_change", "modern")),
