@@ -1,6 +1,6 @@
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { readTextFile } from "@tauri-apps/plugin-fs";
+import { readTextFile, remove } from "@tauri-apps/plugin-fs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CommandBar } from "~/command/CommandBar";
 import { Editor } from "~/editor/Editor";
@@ -78,6 +78,18 @@ function App() {
     setActiveContent("");
     bumpEditorKey();
   }, [flushSave, bumpEditorKey]);
+
+  const deletePage = useCallback(
+    async (path: string) => {
+      const dir = localStorage.getItem("rootDir");
+      if (!dir) return;
+      await remove(path);
+      await loadDir(dir);
+      if (path === activePath) resetEditor();
+      setCmdkOpen(false);
+    },
+    [activePath, loadDir, resetEditor],
+  );
 
   // Tauri event listeners for new note and folder change
   useEffect(() => {
@@ -158,7 +170,7 @@ function App() {
         </div>
       </div>
       <Editor key={editorKey} initialMarkdown={activeContent} onChange={handleChange} />
-      {cmdkOpen && <CommandBar files={files} onSelect={openFile} onClose={() => setCmdkOpen(false)} />}
+      {cmdkOpen && <CommandBar files={files} onSelect={openFile} onDelete={deletePage} onClose={() => setCmdkOpen(false)} />}
     </div>
   );
 }
