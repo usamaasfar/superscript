@@ -6,6 +6,7 @@ import { liftListItem, sinkListItem, splitListItem, wrapInList } from "prosemirr
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { useEffect, useRef } from "react";
+import { caretPlugin } from "./plugins/caret";
 import { parseMarkdown, schema, serializeMarkdown } from "./markdown";
 
 function buildInputRules() {
@@ -72,7 +73,7 @@ function createState(initialMarkdown?: string) {
   return EditorState.create({
     schema,
     doc,
-    plugins: [history(), buildInputRules(), buildKeymap(), keymap(baseKeymap)],
+    plugins: [history(), buildInputRules(), buildKeymap(), keymap(baseKeymap), caretPlugin],
   });
 }
 

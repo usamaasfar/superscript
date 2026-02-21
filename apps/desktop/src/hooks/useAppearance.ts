@@ -1,5 +1,6 @@
 import { listen } from "@tauri-apps/api/event";
 import { useEffect } from "react";
+import { type CaretStyle, setCaretStyle } from "~/editor/plugins/caret";
 
 const fonts: Record<string, string> = {
   default: "Georgia, serif",
@@ -52,11 +53,16 @@ export function useAppearance(): void {
         localStorage.setItem("size", e.payload);
       }
     });
+    const unlistenCursor = listen<string>("cursor_change", (e) => {
+      setCaretStyle(e.payload as CaretStyle);
+      localStorage.setItem("cursor", e.payload);
+    });
 
     return () => {
       unlistenFont.then((f) => f());
       unlistenAppearance.then((f) => f());
       unlistenSize.then((f) => f());
+      unlistenCursor.then((f) => f());
     };
   }, []);
 }
