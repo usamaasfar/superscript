@@ -37,10 +37,7 @@ function updateCaret(view: EditorView, el: HTMLElement) {
   const lineHeight = cursorRect.bottom - cursorRect.top;
   el.setAttribute("data-style", caretStyle);
   el.style.left = `${cursorRect.left - containerRect.left}px`;
-  el.style.top =
-    caretStyle === "underline"
-      ? `${cursorRect.bottom - containerRect.top - 2}px`
-      : `${cursorRect.top - containerRect.top}px`;
+  el.style.top = caretStyle === "underline" ? `${cursorRect.bottom - containerRect.top - 2}px` : `${cursorRect.top - containerRect.top}px`;
   el.style.height = caretStyle === "underline" ? "2px" : `${lineHeight}px`;
 
   // restart blink so caret stays solid while typing

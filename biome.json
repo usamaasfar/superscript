@@ -24,12 +24,7 @@
       "quoteStyle": "double"
     }
   },
-  "assist": {
-    "enabled": true,
-    "actions": {
-      "source": {
-        "organizeImports": "on"
-      }
-    }
+  "assists": {
+    "enabled": true
   }
 }

@@ -8,7 +8,17 @@ interface Props {
 
 export function CommandBar({ files, onSelect, onClose }: Props) {
   return (
-    <div className="cmdk-overlay" onClick={onClose}>
+    <div
+      className="cmdk-overlay"
+      onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClose();
+        }
+      }}
+      tabIndex={-1}
+    >
       <Command className="cmdk-palette" onClick={(e) => e.stopPropagation()}>
         <Command.Input autoFocus placeholder="Find file…" />
         <Command.List>

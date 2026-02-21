@@ -1,6 +1,6 @@
 import MarkdownIt from "markdown-it";
 import type Token from "markdown-it/lib/token.mjs";
-import { defaultMarkdownSerializer, MarkdownParser, MarkdownSerializer } from "prosemirror-markdown";
+import { MarkdownParser, MarkdownSerializer, defaultMarkdownSerializer } from "prosemirror-markdown";
 import { Schema } from "prosemirror-model";
 
 // schema: CommonMark nodes + strikethrough mark
@@ -168,7 +168,8 @@ export const schema = new Schema({
 });
 
 function listIsTight(tokens: Token[], i: number) {
-  while (++i < tokens.length) if (tokens[i].type !== "list_item_open") return tokens[i].hidden;
+  let index = i;
+  while (++index < tokens.length) if (tokens[index].type !== "list_item_open") return tokens[index].hidden;
   return false;
 }
 

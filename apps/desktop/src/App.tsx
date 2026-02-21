@@ -5,8 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CommandBar } from "~/command/CommandBar";
 import { Editor } from "~/editor/Editor";
 import { useAppearance } from "~/hooks/useAppearance";
-import { useAutoUpdate } from "~/hooks/useAutoUpdate";
 import { useAutoSave } from "~/hooks/useAutoSave";
+import { useAutoUpdate } from "~/hooks/useAutoUpdate";
 import { useFileSystem } from "~/hooks/useFileSystem";
 import { useRename } from "~/hooks/useRename";
 import { getFileStem } from "~/utils/file";
@@ -44,21 +44,19 @@ function App() {
     setActivePath,
   });
 
-  const { isRenaming, renameValue, setRenameValue, renameInputRef, startRename, submitRename, resetRename } = useRename(
-    {
-      activePath,
-      files,
-      flushSave,
-      loadDir,
-      setActivePath,
-      setActiveContent,
-      setEditorKey: (updater) => {
-        const next = updater(editorKeyRef.current);
-        editorKeyRef.current = next;
-        setEditorKey(next);
-      },
+  const { isRenaming, renameValue, setRenameValue, renameInputRef, startRename, submitRename, resetRename } = useRename({
+    activePath,
+    files,
+    flushSave,
+    loadDir,
+    setActivePath,
+    setActiveContent,
+    setEditorKey: (updater) => {
+      const next = updater(editorKeyRef.current);
+      editorKeyRef.current = next;
+      setEditorKey(next);
     },
-  );
+  });
 
   const openFile = useCallback(
     async (path: string) => {
