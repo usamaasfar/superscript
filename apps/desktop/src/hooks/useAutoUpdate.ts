@@ -4,8 +4,10 @@ import { useEffect } from "react";
 
 export function useAutoUpdate(): void {
   useEffect(() => {
-    check().then((update) => {
-      if (update) update.downloadAndInstall().then(() => relaunch());
-    });
+    check()
+      .then((update) => {
+        if (update) update.downloadAndInstall().then(() => relaunch());
+      })
+      .catch(console.error);
   }, []);
 }
