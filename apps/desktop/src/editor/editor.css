@@ -12,7 +12,8 @@
   padding: 32px 32px 120px;
   outline: none;
   caret-color: currentColor;
-  font-size: 1rem;
+  font-family: var(--font);
+  font-size: var(--font-size);
   line-height: 1.75;
   color: inherit;
   word-break: break-word;
@@ -26,8 +27,6 @@
   height: 0;
   opacity: 0.3;
 }
-
-/* --- Block nodes --- */
 
 .ProseMirror p {
   margin: 0 0 0.75em;
@@ -93,15 +92,11 @@
   margin: 2em 0;
 }
 
-/* --- Inline nodes --- */
-
 .ProseMirror img {
   max-width: 100%;
   height: auto;
   display: inline-block;
 }
-
-/* --- Marks --- */
 
 .ProseMirror code {
   font-family: "JetBrains Mono", "Fira Code", "Menlo", monospace;

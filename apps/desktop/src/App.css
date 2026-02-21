@@ -1,7 +1,8 @@
 :root {
   --bg: #ffffff;
   --fg: #1a1a1a;
-  --font: "Georgia", serif;
+  --font: Georgia, serif;
+  --font-size: 1.0625rem;
 }
 
 @media (prefers-color-scheme: dark) {
