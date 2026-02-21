@@ -240,6 +240,7 @@ function App() {
     pendingSaveRef.current = { path: activePathRef.current, content: markdown };
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
+      saveTimerRef.current = null;
       if (pendingSaveRef.current) {
         const pending = pendingSaveRef.current;
         pendingSaveRef.current = null;
