@@ -2,10 +2,10 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open } from "@tauri-apps/plugin-dialog";
 import { readDir, readTextFile, rename as renameFile, stat, writeTextFile } from "@tauri-apps/plugin-fs";
-import dayjs from "dayjs";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CommandBar } from "./CommandBar";
-import { Editor } from "./editor/Editor";
+import { CommandBar } from "~/command/CommandBar";
+import { Editor } from "~/editor/Editor";
+import { getFileStem, getParentDir, newFilePath } from "~/utils/file";
 
 const fonts: Record<string, string> = {
   default: "Georgia, serif",
@@ -37,33 +37,6 @@ const savedSize = sizes[localStorage.getItem("size") ?? "default"] ?? sizes.defa
 setVar("--font", savedFont);
 setVar("--font-size", savedSize);
 setTheme(localStorage.getItem("appearance") ?? "system");
-
-let lastFileTimestamp = 0;
-
-function nextFileTimestamp() {
-  const now = Date.now();
-  lastFileTimestamp = now > lastFileTimestamp ? now : lastFileTimestamp + 1;
-  return lastFileTimestamp;
-}
-
-function newFilePath(dir: string) {
-  return `${dir}/${dayjs(nextFileTimestamp()).format("YYYY-MM-DD HH.mm.ss.SSS")}.md`;
-}
-
-function getParentDir(path: string) {
-  const index = path.lastIndexOf("/");
-  return index > 0 ? path.slice(0, index) : "";
-}
-
-function getFileName(path: string) {
-  const index = path.lastIndexOf("/");
-  return index === -1 ? path : path.slice(index + 1);
-}
-
-function getFileStem(path: string) {
-  const fileName = getFileName(path);
-  return fileName.toLowerCase().endsWith(".md") ? fileName.slice(0, -3) : fileName;
-}
 
 function App() {
   const [files, setFiles] = useState<string[]>([]);
