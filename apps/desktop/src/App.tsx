@@ -81,6 +81,7 @@ function App() {
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingSaveRef = useRef<{ path: string | null; content: string } | null>(null);
+  const flushPromiseRef = useRef<Promise<void> | null>(null);
   const renameInputRef = useRef<HTMLInputElement | null>(null);
 
   const loadDir = useCallback(async (dir: string) => {
@@ -130,14 +131,28 @@ function App() {
   );
 
   const flushSave = useCallback(async () => {
-    if (saveTimerRef.current) {
-      clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = null;
+    if (flushPromiseRef.current) {
+      await flushPromiseRef.current;
+      return;
     }
-    if (pendingSaveRef.current) {
-      const pending = pendingSaveRef.current;
-      pendingSaveRef.current = null;
-      await persistSave(pending);
+
+    const run = (async () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+      if (pendingSaveRef.current) {
+        const pending = pendingSaveRef.current;
+        pendingSaveRef.current = null;
+        await persistSave(pending);
+      }
+    })();
+
+    flushPromiseRef.current = run;
+    try {
+      await run;
+    } finally {
+      flushPromiseRef.current = null;
     }
   }, [persistSave]);
 
@@ -325,7 +340,11 @@ function App() {
         if (pendingSaveRef.current) {
           const pending = pendingSaveRef.current;
           pendingSaveRef.current = null;
-          await persistSave(pending);
+          try {
+            await persistSave(pending);
+          } catch {
+            // Ignore background autosave errors.
+          }
         }
       }, 800);
     },
