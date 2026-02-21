@@ -66,8 +66,8 @@ export function useFileSystem({ cmdkOpen, onFolderLoaded }: UseFileSystemOptions
     const selected = await open({ directory: true, multiple: false });
     if (!selected) return;
     const dir = selected as string;
-    localStorage.setItem("rootDir", dir);
     await loadFolder(dir);
+    localStorage.setItem("rootDir", dir);
   }, [loadFolder]);
 
   // On mount: restore saved folder, or try iCloud default, or prompt for one
@@ -86,8 +86,8 @@ export function useFileSystem({ cmdkOpen, onFolderLoaded }: UseFileSystemOptions
       // Try the iCloud "Superscript" folder first
       try {
         const icloudDir = await resolveICloudFolder();
-        localStorage.setItem("rootDir", icloudDir);
         await loadFolder(icloudDir);
+        localStorage.setItem("rootDir", icloudDir);
         return;
       } catch {
         // iCloud unavailable — fall through to manual picker
