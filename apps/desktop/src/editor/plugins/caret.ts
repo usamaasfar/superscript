@@ -4,12 +4,11 @@ import type { EditorView } from "prosemirror-view";
 export type CaretStyle = "line" | "underline";
 
 let caretStyle: CaretStyle = (localStorage.getItem("cursor") as CaretStyle) ?? "line";
-let activeView: EditorView | null = null;
-let activeEl: HTMLElement | null = null;
+const caretInstances = new Set<{ view: EditorView; el: HTMLElement }>();
 
 export function setCaretStyle(style: CaretStyle) {
   caretStyle = style;
-  if (activeView && activeEl) updateCaret(activeView, activeEl);
+  caretInstances.forEach(({ view, el }) => updateCaret(view, el));
 }
 
 function getCursorRect(view: EditorView) {
@@ -48,12 +47,18 @@ function updateCaret(view: EditorView, el: HTMLElement) {
 
 export const caretPlugin = new Plugin({
   view(view) {
+    const parent = view.dom.parentElement;
+    if (!parent) {
+      console.warn("caretPlugin: editor has no parent element; skipping custom caret");
+      return {};
+    }
+
     const el = document.createElement("div");
     el.className = "pm-caret";
     el.setAttribute("data-style", caretStyle);
-    view.dom.parentElement?.appendChild(el);
-    activeView = view;
-    activeEl = el;
+    parent.appendChild(el);
+    const instance = { view, el };
+    caretInstances.add(instance);
     updateCaret(view, el);
 
     return {
@@ -62,8 +67,7 @@ export const caretPlugin = new Plugin({
       },
       destroy() {
         el.remove();
-        activeView = null;
-        activeEl = null;
+        caretInstances.delete(instance);
       },
     };
   },
