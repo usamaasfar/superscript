@@ -1,5 +1,4 @@
 import { Command } from "cmdk";
-import "./CommandBar.css";
 
 interface Props {
   files: string[];

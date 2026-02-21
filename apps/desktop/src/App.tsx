@@ -4,8 +4,6 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { readDir, readTextFile, rename as renameFile, stat, writeTextFile } from "@tauri-apps/plugin-fs";
 import dayjs from "dayjs";
 import { useCallback, useEffect, useRef, useState } from "react";
-import "./App.css";
-import "./editor/editor.css";
 import { CommandBar } from "./CommandBar";
 import { Editor } from "./editor/Editor";
 
