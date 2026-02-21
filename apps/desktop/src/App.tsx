@@ -1,6 +1,6 @@
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { readTextFile } from "@tauri-apps/plugin-fs";
+import { readTextFile, remove } from "@tauri-apps/plugin-fs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CommandBar } from "~/command/CommandBar";
 import { Editor } from "~/editor/Editor";
@@ -78,6 +78,27 @@ function App() {
     setActiveContent("");
     bumpEditorKey();
   }, [flushSave, bumpEditorKey]);
+
+
+  const deletePage = useCallback(
+    async (path: string) => {
+      try {
+        await remove(path);
+        const dir = localStorage.getItem("rootDir");
+        if (dir) {
+          await loadDir(dir);
+        }
+        if (activePath === path) {
+          setActivePath(null);
+          setActiveContent("");
+          bumpEditorKey();
+        }
+      } catch (error) {
+        console.error("Failed to delete file:", error);
+      }
+    },
+    [activePath, loadDir, bumpEditorKey],
+  );
 
   // Tauri event listeners for new note and folder change
   useEffect(() => {
@@ -158,7 +179,7 @@ function App() {
         </div>
       </div>
       <Editor key={editorKey} initialMarkdown={activeContent} onChange={handleChange} />
-      {cmdkOpen && <CommandBar files={files} onSelect={openFile} onClose={() => setCmdkOpen(false)} />}
+      {cmdkOpen && <CommandBar files={files} onSelect={openFile} onDelete={deletePage} onClose={() => setCmdkOpen(false)} />}
     </div>
   );
 }
