@@ -56,7 +56,7 @@ apps/desktop/          — the only app
   - Functional components with hooks; no Redux/Zustand.
   - Strict TypeScript.
   - Double quotes (Biome enforced).
-  - All persistence via `localStorage` (key: `rootDir`, `font`, `size`, `appearance`).
+  - All persistence via `localStorage` (key: `rootDir`, `font`, `size`, `appearance`, `cursor`).
 
 ## Architecture notes
 
@@ -88,7 +88,7 @@ Rust emits Tauri events; React listens with `listen()`:
 
 - `new_note` → create new file
 - `change_folder` → call `pickFolder()`
-- `font_change` / `size_change` / `appearance_change` → update preferences
+- `font_change` / `size_change` / `appearance_change` / `cursor_change` → update preferences
 
 ### Editor
 
