@@ -1,3 +1,8 @@
+@import "tailwindcss";
+@import "./editor.css";
+@import "./command.css";
+
+/* ── Theme tokens ─────────────────────────────────────────── */
 :root {
   --bg: #ffffff;
   --fg: #1a1a1a;
@@ -17,14 +22,7 @@
   --fg: #e8e8e8;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+/* ── Base ─────────────────────────────────────────────────── */
 html,
 body,
 #root {
@@ -38,6 +36,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── App shell ────────────────────────────────────────────── */
 .app {
   position: relative;
   display: flex;
@@ -46,6 +45,7 @@ body {
   padding-top: env(titlebar-area-height, 28px);
 }
 
+/* ── Topbar ───────────────────────────────────────────────── */
 .app-topbar {
   position: fixed;
   top: 0;
@@ -56,6 +56,7 @@ body {
   padding: 0 12px;
   pointer-events: auto;
   z-index: 10;
+  background: var(--bg);
 }
 
 .app-topbar-drag {
@@ -83,7 +84,9 @@ body {
   border-radius: 0;
   background: transparent;
   color: var(--fg);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+    sans-serif;
   font-size: 0.78rem;
   font-weight: 500;
   line-height: 1.1;
@@ -91,11 +94,6 @@ body {
   padding: 0;
   opacity: 0.62;
   letter-spacing: 0.01em;
-}
-
-.app-title-input:disabled {
-  opacity: 0.42;
-  -webkit-text-fill-color: var(--fg);
 }
 
 .app-title-input.is-editing {

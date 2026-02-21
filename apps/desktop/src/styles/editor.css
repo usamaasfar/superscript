@@ -1,27 +1,25 @@
-/* ProseMirror editor mount */
 .editor-mount {
   width: 100%;
   height: 100%;
 }
 
-/* Editable surface */
 .ProseMirror {
-  max-width: 1200px;
+  max-width: 680px;
   margin: 0 auto;
   min-height: 100%;
-  padding: 32px 32px 120px;
+  padding: calc(env(titlebar-area-height, 8px) + 16px) 32px 120px;
   outline: none;
   caret-color: currentColor;
   font-family: var(--font);
   font-size: var(--font-size);
-  line-height: 1.75;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
   color: inherit;
   word-break: break-word;
 }
 
-/* Placeholder */
 .ProseMirror.is-empty > p:first-child::before {
-  content: "Start writing…";
+  content: "";
   pointer-events: none;
   float: left;
   height: 0;
@@ -117,7 +115,6 @@
   opacity: 0.5;
 }
 
-/* Selected node outline */
 .ProseMirror-selectednode {
   outline: 2px solid rgba(128, 128, 128, 0.4);
   border-radius: 2px;
