@@ -132,12 +132,13 @@ function App() {
     [flushSave],
   );
 
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingSaveRef = useRef<{ path: string | null; content: string } | null>(null);
-  const newPageInProgressRef = useRef(false);
-    },
-    [flushSave, loadDir],
-  );
+  const newPage = useCallback(async (dir: string) => {
+    if (newPageInProgressRef.current) return;
+    newPageInProgressRef.current = true;
+    await flushSave();
+    setActivePath(null);
+    setActiveContent("");
+    newPageInProgressRef.current = false;
 
   const loadFolder = useCallback(
     async (dir: string) => {
