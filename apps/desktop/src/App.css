@@ -1,0 +1,46 @@
+:root {
+  --bg: #ffffff;
+  --fg: #1a1a1a;
+  --font: Georgia, serif;
+  --font-size: 1.0625rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1a1a1a;
+    --fg: #e8e8e8;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #1a1a1a;
+  --fg: #e8e8e8;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  display: flex;
+  height: 100%;
+  overflow-y: auto;
+  padding-top: env(titlebar-area-height, 28px);
+}
