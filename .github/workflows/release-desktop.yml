@@ -79,8 +79,7 @@ jobs:
         with:
           projectPath: apps/desktop
           tagName: v__VERSION__
-          releaseName: Superscript v__VERSION__
-          releaseDraft: true
+          releaseName: v__VERSION__
           generateReleaseNotes: true
           args: --target ${{ matrix.target }} --bundles dmg,app
 
