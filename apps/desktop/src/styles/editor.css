@@ -12,7 +12,8 @@
   caret-color: currentColor;
   font-family: var(--font);
   font-size: var(--font-size);
-  line-height: 1.75;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
   color: inherit;
   word-break: break-word;
 }
