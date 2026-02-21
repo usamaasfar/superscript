@@ -129,6 +129,10 @@ function App() {
             value={titleValue}
             size={Math.max(1, titleValue.length)}
             readOnly={!isRenaming}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
             onDoubleClick={startRename}
             onChange={(e) => {
               if (isRenaming) setRenameValue(e.target.value);
