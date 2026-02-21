@@ -1,43 +1,67 @@
-# Superscript
+# AGENTS.md
 
-A minimal markdown editor for macOS, built with Tauri 2 + React + ProseMirror.
+## Setup commands
 
-## What it is
+- **Install dependencies**:
+  ```bash
+  bun install
+  ```
 
-Superscript is a distraction-free writing app. You point it at a folder of `.md` files and it gets out of the way. No sidebars, no tabs, no sync — just a clean editor that reads and writes plain markdown files on disk.
+- **Start development server**:
+  ```bash
+  bun tauri dev
+  ```
+  This command starts the Vite dev server and the Tauri application window.
 
-## Stack
+- **Build for production**:
+  ```bash
+  bun tauri build
+  ```
 
-- **Shell**: Tauri 2 (Rust) — native macOS window, menubar, file system access
-- **UI**: React 19 + TypeScript, bundled with Vite
-- **Editor**: ProseMirror with a custom markdown schema (parse + serialize)
-- **Styling**: Plain CSS with `--bg`, `--fg`, `--font`, `--font-size` CSS variables
-- **Monorepo**: Turborepo + Bun workspaces
+## Code style
 
-## Key behaviours
+- **Framework**: React 19 + TypeScript.
+- **Styling**: Plain CSS with CSS variables (`--bg`, `--fg`, etc.) and Tailwind CSS v4.
+- **Linting & Formatting**: Biome.
+  - Run lint: `bun run lint`
+  - Format: `bun run format`
+  - Check types and lint: `bun run check`
+- **Conventions**:
+  - Functional components with hooks.
+  - Strict TypeScript types.
+  - Double quotes for strings (enforced by Biome).
+  - Imports organized by Biome.
 
-- On first launch, prompts for a folder. Remembers it in `localStorage`.
-- Lists `.md` files from that folder. Cmd+K opens a file switcher (cmdk).
-- Files are named by datetime stamp (e.g. `2026-02-21 14.32.md`).
-- Autosaves 800ms after the last keystroke via `writeTextFile`.
-- Light/dark/system theme, font, and font size are persisted in `localStorage` and controllable from the menubar.
+## Dev environment tips
 
-## Project layout
+- **Project Structure**:
+  - `apps/desktop`: Main Tauri application.
+    - `src/`: React frontend.
+      - `editor/`: ProseMirror editor implementation.
+    - `src-tauri/`: Rust backend.
+- **Key Behaviors**:
+  - Prompts for a folder on first launch (persisted in `localStorage`).
+  - Autosaves 800ms after last keystroke.
+  - Cmd+K opens file switcher.
+- **Tips**:
+  - Use `bun run <script>` to execute scripts.
+  - Check `apps/desktop/src/App.tsx` for main application logic.
 
-```
-apps/desktop/
-  src/                  React frontend
-    editor/             ProseMirror editor + markdown serializer
-    App.tsx             Root component — folder, file state, autosave
-    CommandBar.tsx      Cmd+K file switcher (cmdk)
-  src-tauri/
-    src/lib.rs          Tauri builder, menu, event emissions
-    capabilities/       Tauri ACL permissions
-```
+## Testing instructions
 
-## Running
+- **Manual Testing**:
+  - Currently, there are no automated tests set up for `apps/desktop`.
+  - Verify functionality by running `bun tauri dev`:
+    - Check file listing from the selected folder.
+    - Create new files (Cmd+N).
+    - Edit files and verify autosave.
+    - Switch files using Cmd+K.
+    - Change themes via menubar.
 
-```bash
-bun tauri dev       # dev server + native window
-bun tauri build     # production build
-```
+## PR instructions
+
+- **Title Format**: `[desktop] <Description>`
+- **Before Committing**:
+  - Run `bun run check` to verify types and linting.
+  - Ensure the application builds successfully with `bun run build`.
+  - Format code with `bun run format`.
