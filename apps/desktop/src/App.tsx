@@ -20,11 +20,20 @@ function setVar(name: string, value: string) {
   document.documentElement.style.setProperty(name, value);
 }
 
+function setTheme(value: string) {
+  if (value === "system") {
+    document.documentElement.removeAttribute("data-theme");
+  } else {
+    document.documentElement.setAttribute("data-theme", value);
+  }
+}
+
 // Apply persisted preferences on startup
 const savedFont = fonts[localStorage.getItem("font") ?? "default"] ?? fonts.default;
 const savedSize = sizes[localStorage.getItem("size") ?? "default"] ?? sizes.default;
 setVar("--font", savedFont);
 setVar("--font-size", savedSize);
+setTheme(localStorage.getItem("appearance") ?? "system");
 
 function App() {
   useEffect(() => {
@@ -34,6 +43,11 @@ function App() {
         setVar("--font", font);
         localStorage.setItem("font", e.payload);
       }
+    });
+
+    const unlistenAppearance = listen<string>("appearance_change", (e) => {
+      setTheme(e.payload);
+      localStorage.setItem("appearance", e.payload);
     });
 
     const unlistenSize = listen<string>("size_change", (e) => {
@@ -46,6 +60,7 @@ function App() {
 
     return () => {
       unlistenFont.then((f) => f());
+      unlistenAppearance.then((f) => f());
       unlistenSize.then((f) => f());
     };
   }, []);

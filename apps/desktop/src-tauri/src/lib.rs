@@ -114,6 +114,17 @@ pub fn run() {
                     )?,
                     &Submenu::with_id_and_items(
                         handle,
+                        "appearance-menu",
+                        "Appearance",
+                        true,
+                        &[
+                            &MenuItem::with_id(handle, "appearance-system", "System", true, None::<&str>)?,
+                            &MenuItem::with_id(handle, "appearance-light", "Light", true, None::<&str>)?,
+                            &MenuItem::with_id(handle, "appearance-dark", "Dark", true, None::<&str>)?,
+                        ],
+                    )?,
+                    &Submenu::with_id_and_items(
+                        handle,
                         "window-menu",
                         "Window",
                         true,
@@ -136,6 +147,9 @@ pub fn run() {
                     "size-small" => Some(("size_change", "small")),
                     "size-medium" => Some(("size_change", "default")),
                     "size-large" => Some(("size_change", "large")),
+                    "appearance-system" => Some(("appearance_change", "system")),
+                    "appearance-light" => Some(("appearance_change", "light")),
+                    "appearance-dark" => Some(("appearance_change", "dark")),
                     _ => None,
                 };
                 if let Some((event_name, value)) = payload {
