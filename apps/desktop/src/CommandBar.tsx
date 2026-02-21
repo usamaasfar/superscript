@@ -15,7 +15,7 @@ export function CommandBar({ files, onSelect, onClose }: Props) {
         <Command.List>
           <Command.Empty>No files found.</Command.Empty>
           {files.map((path) => {
-            const name = path.split("/").pop()!;
+            const name = path.split("/").pop() || path;
             return (
               <Command.Item
                 key={path}
