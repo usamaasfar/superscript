@@ -39,8 +39,16 @@ setVar("--font", savedFont);
 setVar("--font-size", savedSize);
 setTheme(localStorage.getItem("appearance") ?? "system");
 
+let lastFileTimestamp = 0;
+
+function nextFileTimestamp() {
+  const now = Date.now();
+  lastFileTimestamp = now > lastFileTimestamp ? now : lastFileTimestamp + 1;
+  return lastFileTimestamp;
+}
+
 function newFilePath(dir: string) {
-  return `${dir}/${dayjs().format("YYYY-MM-DD HH.mm")}.md`;
+  return `${dir}/${dayjs(nextFileTimestamp()).format("YYYY-MM-DD HH.mm.ss.SSS")}.md`;
 }
 
 function App() {
