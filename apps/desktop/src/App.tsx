@@ -50,6 +50,9 @@ function App() {
   const activePathRef = useRef<string | null>(null);
   activePathRef.current = activePath;
 
+  const editorKeyRef = useRef(0);
+  const [editorKey, setEditorKey] = useState(0);
+
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingSaveRef = useRef<{ path: string | null; content: string } | null>(null);
   const flushPromiseRef = useRef<Promise<void> | null>(null);
@@ -94,7 +97,6 @@ function App() {
 
       const path = newFilePath(dir);
       await writeTextFile(path, save.content);
-      setActiveContent(save.content);
       setActivePath(path);
       await loadDir(dir);
     },
@@ -133,6 +135,8 @@ function App() {
       const content = await readTextFile(path);
       setActivePath(path);
       setActiveContent(content);
+      editorKeyRef.current += 1;
+      setEditorKey(editorKeyRef.current);
     },
     [flushSave],
   );
@@ -141,6 +145,8 @@ function App() {
     await flushSave();
     setActivePath(null);
     setActiveContent("");
+    editorKeyRef.current += 1;
+    setEditorKey(editorKeyRef.current);
   }, [flushSave]);
 
   const loadFolder = useCallback(
@@ -148,6 +154,8 @@ function App() {
       await loadDir(dir);
       setActivePath(null);
       setActiveContent("");
+      editorKeyRef.current += 1;
+      setEditorKey(editorKeyRef.current);
     },
     [loadDir],
   );
@@ -166,17 +174,11 @@ function App() {
   }, []);
 
   const startRename = useCallback(() => {
-    if (!activePath) return;
-    setRenameValue(getFileStem(activePath));
+    setRenameValue(activePath ? getFileStem(activePath) : "Untitled");
     setIsRenaming(true);
   }, [activePath]);
 
   const submitRename = useCallback(async () => {
-    if (!activePath) {
-      resetRename();
-      return;
-    }
-
     const nextBase = renameValue.replace(/[\\/]/g, "").trim();
     if (!nextBase) {
       resetRename();
@@ -184,6 +186,30 @@ function App() {
     }
 
     const nextName = nextBase.toLowerCase().endsWith(".md") ? nextBase : `${nextBase}.md`;
+
+    if (!activePath) {
+      // No active file — create a new empty file with the given name.
+      const dir = localStorage.getItem("rootDir");
+      if (!dir) {
+        resetRename();
+        return;
+      }
+      const nextPath = `${dir}/${nextName}`;
+      if (files.includes(nextPath)) return;
+      try {
+        await writeTextFile(nextPath, "");
+        setActivePath(nextPath);
+        setActiveContent("");
+        editorKeyRef.current += 1;
+        setEditorKey(editorKeyRef.current);
+        await loadDir(dir);
+        resetRename();
+      } catch {
+        // Keep editing state so user can adjust the name.
+      }
+      return;
+    }
+
     const dir = getParentDir(activePath);
     if (!dir) {
       resetRename();
@@ -340,7 +366,6 @@ function App() {
             value={titleValue}
             size={Math.max(1, titleValue.length)}
             readOnly={!isRenaming}
-            disabled={!activePath}
             onDoubleClick={startRename}
             onChange={(e) => {
               if (isRenaming) setRenameValue(e.target.value);
@@ -359,11 +384,11 @@ function App() {
                 resetRename();
               }
             }}
-            title={activePath ? "Double-click to rename" : "Untitled"}
+            title="Double-click to rename"
           />
         </div>
       </div>
-      <Editor key={activePath ?? "__empty__"} initialMarkdown={activeContent} onChange={handleChange} />
+      <Editor key={editorKey} initialMarkdown={activeContent} onChange={handleChange} />
       {cmdkOpen && <CommandBar files={files} onSelect={openFile} onClose={() => setCmdkOpen(false)} />}
     </div>
   );

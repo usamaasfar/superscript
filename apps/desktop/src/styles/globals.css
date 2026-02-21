@@ -95,11 +95,6 @@ body {
   letter-spacing: 0.01em;
 }
 
-.app-title-input:disabled {
-  opacity: 0.42;
-  -webkit-text-fill-color: var(--fg);
-}
-
 .app-title-input.is-editing {
   opacity: 1;
 }
