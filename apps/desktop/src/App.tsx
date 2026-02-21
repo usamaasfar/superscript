@@ -132,13 +132,11 @@ function App() {
     [flushSave],
   );
 
-  const newPage = useCallback(async (dir: string) => {
-    if (newPageInProgressRef.current) return;
-    newPageInProgressRef.current = true;
+  const newPage = useCallback(async () => {
     await flushSave();
     setActivePath(null);
     setActiveContent("");
-    newPageInProgressRef.current = false;
+  }, [flushSave]);
 
   const loadFolder = useCallback(
     async (dir: string) => {
@@ -198,7 +196,7 @@ function App() {
     const unlistenChangeFolder = listen("change_folder", () => pickFolder());
     const unlistenNewPage = listen("new_note", () => {
       const dir = localStorage.getItem("rootDir");
-      if (dir) newPage(dir);
+      if (dir) newPage();
     });
 
     return () => {
@@ -220,7 +218,7 @@ function App() {
       if (e.key === "n" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         const dir = localStorage.getItem("rootDir");
-        if (dir) newPage(dir);
+        if (dir) newPage();
       }
       if (e.key === "Escape") {
         setCmdkOpen(false);
