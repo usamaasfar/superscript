@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "../editor/editor.css";
-@import "../command/command.css";
+@import "./editor.css";
+@import "./command.css";
 
 /* ── Theme tokens ─────────────────────────────────────────── */
 :root {
