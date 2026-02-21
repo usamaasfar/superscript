@@ -1,4 +1,4 @@
-name: release-desktop
+name: Release Desktop
 
 on:
   push:
@@ -76,13 +76,15 @@ jobs:
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
           APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
           APPLE_API_KEY_PATH: ~/.private_keys/AuthKey_${{ secrets.APPLE_API_KEY }}.p8
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: apps/desktop
           tagName: v__VERSION__
-          releaseName: Superscript v__VERSION__
-          releaseDraft: true
+          releaseName: v__VERSION__
           generateReleaseNotes: true
-          args: --target ${{ matrix.target }} --bundles dmg,app
+          updaterJsonKeepUniversal: true
+          args: --target ${{ matrix.target }} --bundles dmg,app,updater
 
       - name: Cleanup keychain
         if: always()
