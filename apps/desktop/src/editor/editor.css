@@ -4,32 +4,126 @@
   height: 100%;
 }
 
-/* The editable surface */
+/* Editable surface */
 .ProseMirror {
+  max-width: 1200px;
+  margin: 0 auto;
   min-height: 100%;
-  padding: 48px 64px;
+  padding: 32px 32px 120px;
   outline: none;
   caret-color: currentColor;
   font-size: 1rem;
-  line-height: 1.7;
+  line-height: 1.75;
   color: inherit;
-  white-space: pre-wrap;
   word-break: break-word;
 }
 
-.ProseMirror p {
-  margin: 0 0 0.5em;
-}
-
-.ProseMirror p:last-child {
-  margin-bottom: 0;
-}
-
-/* Placeholder when editor is empty */
+/* Placeholder */
 .ProseMirror.ProseMirror-empty > p:first-child::before {
   content: "Start writing…";
   pointer-events: none;
   float: left;
   height: 0;
-  opacity: 0.35;
+  opacity: 0.3;
+}
+
+/* --- Block nodes --- */
+
+.ProseMirror p {
+  margin: 0 0 0.75em;
+}
+
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3 {
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 1.5em 0 0.4em;
+}
+
+.ProseMirror h1 {
+  font-size: 2rem;
+}
+.ProseMirror h2 {
+  font-size: 1.4rem;
+}
+.ProseMirror h3 {
+  font-size: 1.15rem;
+}
+
+.ProseMirror blockquote {
+  margin: 1em 0;
+  padding: 0 0 0 1.25em;
+  border-left: 3px solid currentColor;
+  opacity: 0.65;
+}
+
+.ProseMirror pre {
+  margin: 1em 0;
+  padding: 1em 1.25em;
+  border-radius: 6px;
+  background: rgba(128, 128, 128, 0.1);
+  overflow-x: auto;
+}
+
+.ProseMirror pre code {
+  font-family: "JetBrains Mono", "Fira Code", "Menlo", monospace;
+  font-size: 0.875em;
+  background: none;
+  padding: 0;
+}
+
+.ProseMirror ul,
+.ProseMirror ol {
+  margin: 0 0 0.75em 1.5em;
+  padding: 0;
+}
+
+.ProseMirror li {
+  margin-bottom: 0.25em;
+}
+
+.ProseMirror li > p {
+  margin: 0;
+}
+
+.ProseMirror hr {
+  border: none;
+  border-top: 1px solid rgba(128, 128, 128, 0.3);
+  margin: 2em 0;
+}
+
+/* --- Inline nodes --- */
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  display: inline-block;
+}
+
+/* --- Marks --- */
+
+.ProseMirror code {
+  font-family: "JetBrains Mono", "Fira Code", "Menlo", monospace;
+  font-size: 0.875em;
+  padding: 0.15em 0.35em;
+  border-radius: 3px;
+  background: rgba(128, 128, 128, 0.15);
+}
+
+.ProseMirror a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 0.8;
+}
+
+.ProseMirror s {
+  opacity: 0.5;
+}
+
+/* Selected node outline */
+.ProseMirror-selectednode {
+  outline: 2px solid rgba(128, 128, 128, 0.4);
+  border-radius: 2px;
 }
