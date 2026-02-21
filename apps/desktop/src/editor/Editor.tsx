@@ -53,11 +53,11 @@ function buildInputRules() {
       ),
       insertHorizontalRule(),
       // inline mark rules
-      markRule(/_([^_]+)_$/, em),              // _italic_
-      markRule(/\*([^*]+)\*$/, strong),        // *bold*
-      markRule(/~~([^~]+)~~$/, strikethrough), // ~~strikethrough~~
-      markRule(/~([^~]+)~$/, strikethrough),   // ~strikethrough~
-      markRule(/`([^`]+)`$/, code),            // `code`
+      markRule(/_([^_]+)_(?=\s|$)/, em),              // _italic_
+      markRule(/\*([^*]+)\*(?=\s|$)/, strong),        // *bold*
+      markRule(/~~([^~]+)~~(?=\s|$)/, strikethrough), // ~~strikethrough~~
+      markRule(/~([^~]+)~(?=\s|$)/, strikethrough),   // ~strikethrough~
+      markRule(/`([^`]+)`(?=\s|$)/, code),            // `code`
     ],
   });
 }
