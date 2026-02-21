@@ -150,6 +150,17 @@ pub fn run() {
                             &MenuItem::with_id(handle, "appearance-system", "System", true, None::<&str>)?,
                             &MenuItem::with_id(handle, "appearance-light", "Light", true, None::<&str>)?,
                             &MenuItem::with_id(handle, "appearance-dark", "Dark", true, None::<&str>)?,
+                            &PredefinedMenuItem::separator(handle)?,
+                            &Submenu::with_id_and_items(
+                                handle,
+                                "cursor-menu",
+                                "Cursor",
+                                true,
+                                &[
+                                    &MenuItem::with_id(handle, "cursor-line", "Line", true, None::<&str>)?,
+                                    &MenuItem::with_id(handle, "cursor-underline", "Underline", true, None::<&str>)?,
+                                ],
+                            )?,
                         ],
                     )?,
                     &Submenu::with_id_and_items(
@@ -181,6 +192,8 @@ pub fn run() {
                     "appearance-system" => Some(("appearance_change", "system")),
                     "appearance-light" => Some(("appearance_change", "light")),
                     "appearance-dark" => Some(("appearance_change", "dark")),
+                    "cursor-line" => Some(("cursor_change", "line")),
+                    "cursor-underline" => Some(("cursor_change", "underline")),
                     _ => None,
                 };
                 if let Some((event_name, value)) = payload {
