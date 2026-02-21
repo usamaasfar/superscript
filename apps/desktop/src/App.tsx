@@ -1,6 +1,7 @@
 import { listen } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { open } from "@tauri-apps/plugin-dialog";
-import { readDir, readTextFile, stat, writeTextFile } from "@tauri-apps/plugin-fs";
+import { readDir, readTextFile, rename as renameFile, stat, writeTextFile } from "@tauri-apps/plugin-fs";
 import dayjs from "dayjs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
@@ -51,10 +52,27 @@ function newFilePath(dir: string) {
   return `${dir}/${dayjs(nextFileTimestamp()).format("YYYY-MM-DD HH.mm.ss.SSS")}.md`;
 }
 
+function getParentDir(path: string) {
+  const index = path.lastIndexOf("/");
+  return index > 0 ? path.slice(0, index) : "";
+}
+
+function getFileName(path: string) {
+  const index = path.lastIndexOf("/");
+  return index === -1 ? path : path.slice(index + 1);
+}
+
+function getFileStem(path: string) {
+  const fileName = getFileName(path);
+  return fileName.toLowerCase().endsWith(".md") ? fileName.slice(0, -3) : fileName;
+}
+
 function App() {
   const [files, setFiles] = useState<string[]>([]);
   const [activePath, setActivePath] = useState<string | null>(null);
   const [activeContent, setActiveContent] = useState<string>("");
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
   const [cmdkOpen, setCmdkOpen] = useState(false);
 
   // Keep a ref in sync with activePath so handleChange always sees the latest value
@@ -63,6 +81,7 @@ function App() {
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingSaveRef = useRef<{ path: string | null; content: string } | null>(null);
+  const renameInputRef = useRef<HTMLInputElement | null>(null);
 
   const loadDir = useCallback(async (dir: string) => {
     const entries = await readDir(dir);
@@ -102,9 +121,9 @@ function App() {
       if (!dir) return;
 
       const path = newFilePath(dir);
+      await writeTextFile(path, save.content);
       setActiveContent(save.content);
       setActivePath(path);
-      await writeTextFile(path, save.content);
       await loadDir(dir);
     },
     [loadDir],
@@ -155,6 +174,58 @@ function App() {
     await loadFolder(dir);
   }, [loadFolder]);
 
+  const resetRename = useCallback(() => {
+    setIsRenaming(false);
+    setRenameValue("");
+  }, []);
+
+  const startRename = useCallback(() => {
+    if (!activePath) return;
+    setRenameValue(getFileStem(activePath));
+    setIsRenaming(true);
+  }, [activePath]);
+
+  const submitRename = useCallback(async () => {
+    if (!activePath) {
+      resetRename();
+      return;
+    }
+
+    const nextBase = renameValue.replace(/[\\/]/g, "").trim();
+    if (!nextBase) {
+      resetRename();
+      return;
+    }
+
+    const nextName = nextBase.toLowerCase().endsWith(".md") ? nextBase : `${nextBase}.md`;
+    const dir = getParentDir(activePath);
+    if (!dir) {
+      resetRename();
+      return;
+    }
+
+    const nextPath = `${dir}/${nextName}`;
+    if (nextPath === activePath) {
+      resetRename();
+      return;
+    }
+
+    // Tauri fs.rename replaces existing files, so block collisions to avoid data loss.
+    if (files.includes(nextPath)) {
+      return;
+    }
+
+    await flushSave();
+    try {
+      await renameFile(activePath, nextPath);
+      setActivePath(nextPath);
+      await loadDir(dir);
+      resetRename();
+    } catch {
+      // Keep editing state so user can adjust the name.
+    }
+  }, [activePath, files, flushSave, loadDir, renameValue, resetRename]);
+
   // On mount: restore saved folder or prompt for one
   useEffect(() => {
     const initialize = async () => {
@@ -172,6 +243,14 @@ function App() {
     };
     void initialize();
   }, [loadFolder, pickFolder]);
+
+  useEffect(() => {
+    if (!isRenaming) return;
+    requestAnimationFrame(() => {
+      renameInputRef.current?.focus();
+      renameInputRef.current?.select();
+    });
+  }, [isRenaming]);
 
   // Tauri event listeners
   useEffect(() => {
@@ -229,21 +308,63 @@ function App() {
   }, [newPage]);
 
   // Use a ref so the callback always captures the latest activePath without re-creating
-  const handleChange = useCallback((markdown: string) => {
-    pendingSaveRef.current = { path: activePathRef.current, content: markdown };
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(async () => {
-      saveTimerRef.current = null;
-      if (pendingSaveRef.current) {
-        const pending = pendingSaveRef.current;
-        pendingSaveRef.current = null;
-        await persistSave(pending);
-      }
-    }, 800);
-  }, [persistSave]);
+  const handleChange = useCallback(
+    (markdown: string) => {
+      pendingSaveRef.current = { path: activePathRef.current, content: markdown };
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(async () => {
+        saveTimerRef.current = null;
+        if (pendingSaveRef.current) {
+          const pending = pendingSaveRef.current;
+          pendingSaveRef.current = null;
+          await persistSave(pending);
+        }
+      }, 800);
+    },
+    [persistSave],
+  );
+
+  const activeFileName = activePath ? getFileStem(activePath) : "Untitled";
+  const titleValue = isRenaming ? renameValue : activeFileName;
+  const handleTopbarPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    void getCurrentWindow().startDragging();
+  }, []);
 
   return (
     <div className="app">
+      <div className="app-topbar">
+        <div className="app-topbar-drag" data-tauri-drag-region="" onPointerDown={handleTopbarPointerDown} />
+        <div className="app-title-wrap">
+          <input
+            ref={renameInputRef}
+            className={`app-title-input${isRenaming ? " is-editing" : ""}`}
+            value={titleValue}
+            size={Math.max(1, titleValue.length)}
+            readOnly={!isRenaming}
+            disabled={!activePath}
+            onDoubleClick={startRename}
+            onChange={(e) => {
+              if (isRenaming) setRenameValue(e.target.value);
+            }}
+            onBlur={() => {
+              if (isRenaming) void submitRename();
+            }}
+            onKeyDown={(e) => {
+              if (!isRenaming) return;
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void submitRename();
+              }
+              if (e.key === "Escape") {
+                e.preventDefault();
+                resetRename();
+              }
+            }}
+            title={activePath ? "Double-click to rename" : "Untitled"}
+          />
+        </div>
+      </div>
       <Editor key={activePath ?? "__empty__"} initialMarkdown={activeContent} onChange={handleChange} />
       {cmdkOpen && <CommandBar files={files} onSelect={openFile} onClose={() => setCmdkOpen(false)} />}
     </div>

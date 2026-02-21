@@ -39,8 +39,69 @@ body {
 }
 
 .app {
+  position: relative;
   display: flex;
   height: 100%;
   overflow-y: auto;
   padding-top: env(titlebar-area-height, 28px);
+}
+
+.app-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(titlebar-area-height, 28px);
+  display: block;
+  padding: 0 12px;
+  pointer-events: auto;
+  z-index: 10;
+}
+
+.app-topbar-drag {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+}
+
+.app-title-wrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  max-width: calc(100vw - 180px);
+  pointer-events: auto;
+}
+
+.app-title-input {
+  min-width: 6ch;
+  max-width: calc(100vw - 180px);
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.1;
+  text-align: center;
+  padding: 0;
+  opacity: 0.62;
+  letter-spacing: 0.01em;
+}
+
+.app-title-input:disabled {
+  opacity: 0.42;
+  -webkit-text-fill-color: var(--fg);
+}
+
+.app-title-input.is-editing {
+  opacity: 1;
+}
+
+.app-title-input:focus {
+  outline: none;
 }

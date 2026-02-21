@@ -16,16 +16,17 @@ export function CommandBar({ files, onSelect, onClose }: Props) {
           <Command.Empty>No files found.</Command.Empty>
           {files.map((path) => {
             const name = path.split("/").pop() || path;
+            const displayName = name.toLowerCase().endsWith(".md") ? name.slice(0, -3) : name;
             return (
               <Command.Item
                 key={path}
-                value={name}
+                value={`${displayName} ${name}`}
                 onSelect={() => {
                   onSelect(path);
                   onClose();
                 }}
               >
-                {name}
+                {displayName}
               </Command.Item>
             );
           })}
