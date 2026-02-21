@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CommandBar } from "~/command/CommandBar";
 import { Editor } from "~/editor/Editor";
 import { useAppearance } from "~/hooks/useAppearance";
+import { useAutoUpdate } from "~/hooks/useAutoUpdate";
 import { useAutoSave } from "~/hooks/useAutoSave";
 import { useFileSystem } from "~/hooks/useFileSystem";
 import { useRename } from "~/hooks/useRename";
@@ -30,6 +31,7 @@ function App() {
   }, [bumpEditorKey]);
 
   useAppearance();
+  useAutoUpdate();
 
   const { files, loadDir, pickFolder } = useFileSystem({
     cmdkOpen,
@@ -83,7 +85,6 @@ function App() {
       const dir = localStorage.getItem("rootDir");
       if (dir) newPage();
     });
-
     return () => {
       unlistenChangeFolder.then((f) => f());
       unlistenNewPage.then((f) => f());
