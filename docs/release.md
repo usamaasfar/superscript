@@ -19,9 +19,12 @@ git push --follow-tags
 ```
 
 This triggers the `release-desktop` GitHub Actions workflow, which:
+
 1. Builds `.dmg` and `.app` for both Apple Silicon and Intel
-2. Creates a draft GitHub Release with auto-generated release notes
-3. Uploads both artifacts to the release
+2. Signs each binary with a Developer ID Application certificate
+3. Notarizes the signed app with Apple (Gatekeeper-trusted)
+4. Creates a draft GitHub Release with auto-generated release notes
+5. Uploads both artifacts to the release
 
 ## After the workflow completes
 
