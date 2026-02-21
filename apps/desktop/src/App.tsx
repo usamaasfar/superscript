@@ -9,6 +9,7 @@ import { useAutoUpdate } from "~/hooks/useAutoUpdate";
 import { useAutoSave } from "~/hooks/useAutoSave";
 import { useFileSystem } from "~/hooks/useFileSystem";
 import { useRename } from "~/hooks/useRename";
+import { useTitleVisibility } from "~/hooks/useTitleVisibility";
 import { getFileStem } from "~/utils/file";
 
 function App() {
@@ -113,6 +114,7 @@ function App() {
 
   const activeFileName = activePath ? getFileStem(activePath) : "Untitled";
   const titleValue = isRenaming ? renameValue : activeFileName;
+  const titleSwitching = useTitleVisibility(activePath);
   const handleTopbarPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
     void getCurrentWindow().startDragging();
@@ -122,13 +124,17 @@ function App() {
     <div className="app">
       <div className="app-topbar">
         <div className="app-topbar-drag" data-tauri-drag-region="" onPointerDown={handleTopbarPointerDown} />
-        <div className="app-title-wrap">
+        <div className={`app-title-wrap${!activePath ? " is-untitled" : ""}${titleSwitching ? " is-switching" : ""}`}>
           <input
             ref={renameInputRef}
             className={`app-title-input${isRenaming ? " is-editing" : ""}`}
             value={titleValue}
             size={Math.max(1, titleValue.length)}
             readOnly={!isRenaming}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
             onDoubleClick={startRename}
             onChange={(e) => {
               if (isRenaming) setRenameValue(e.target.value);

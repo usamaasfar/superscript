@@ -1,7 +1,8 @@
 import { baseKeymap, chainCommands, exitCode, setBlockType, toggleMark, wrapIn } from "prosemirror-commands";
 import { history, redo, undo } from "prosemirror-history";
-import { inputRules, textblockTypeInputRule, wrappingInputRule } from "prosemirror-inputrules";
+import { InputRule, inputRules, textblockTypeInputRule, wrappingInputRule } from "prosemirror-inputrules";
 import { keymap } from "prosemirror-keymap";
+import type { MarkType } from "prosemirror-model";
 import { liftListItem, sinkListItem, splitListItem, wrapInList } from "prosemirror-schema-list";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
@@ -9,9 +10,37 @@ import { useEffect, useRef } from "react";
 import { caretPlugin } from "./plugins/caret";
 import { parseMarkdown, schema, serializeMarkdown } from "./markdown";
 
+function markRule(pattern: RegExp, markType: MarkType): InputRule {
+  return new InputRule(pattern, (state, match, start, end) => {
+    const [full, inner] = match;
+    const markStart = start + full.indexOf(inner);
+    const markEnd = markStart + inner.length;
+    const mark = markType.create();
+    const tr = state.tr
+      .addMark(markStart, markEnd, mark)
+      .delete(markEnd, end)
+      .delete(start, markStart)
+      .removeStoredMark(mark);
+    return tr;
+  });
+}
+
+function insertHorizontalRule() {
+  return new InputRule(/^---$/, (state, _match, start, end) => {
+    const { horizontal_rule, paragraph } = schema.nodes;
+    const tr = state.tr.replaceWith(start - 1, end, [
+      horizontal_rule.create(),
+      paragraph.create(),
+    ]);
+    return tr;
+  });
+}
+
 function buildInputRules() {
+  const { strong, em, code, strikethrough } = schema.marks;
   return inputRules({
     rules: [
+      // block rules
       textblockTypeInputRule(/^(#{1,3})\s$/, schema.nodes.heading, (match) => ({ level: match[1].length })),
       wrappingInputRule(/^\s*>\s$/, schema.nodes.blockquote),
       textblockTypeInputRule(/^```$/, schema.nodes.code_block),
@@ -22,12 +51,19 @@ function buildInputRules() {
         (match) => ({ order: +match[1] }),
         (match, node) => node.childCount + node.attrs.order === +match[1],
       ),
+      insertHorizontalRule(),
+      // inline mark rules
+      markRule(/_([^_]+)_(?=\s|$)/, em),              // _italic_
+      markRule(/\*([^*]+)\*(?=\s|$)/, strong),        // *bold*
+      markRule(/~~([^~]+)~~(?=\s|$)/, strikethrough), // ~~strikethrough~~
+      markRule(/~([^~]+)~(?=\s|$)/, strikethrough),   // ~strikethrough~
+      markRule(/`([^`]+)`(?=\s|$)/, code),            // `code`
     ],
   });
 }
 
 function buildKeymap() {
-  const { strong, em, code, strikethrough } = schema.marks;
+  const { strong, em, code, strikethrough, underline } = schema.marks;
   const { heading, code_block, blockquote, bullet_list, ordered_list, list_item, hard_break, paragraph } = schema.nodes;
 
   const insertHardBreak = chainCommands(exitCode, (state, dispatch) => {
@@ -40,31 +76,33 @@ function buildKeymap() {
     "Mod-z": undo,
     "Mod-Shift-z": redo,
 
-    // inline marks — standard across iA Writer, Notion, Bear
+    // inline marks
     "Mod-b": toggleMark(strong),
     "Mod-i": toggleMark(em),
-    "Mod-e": toggleMark(code), // inline code (matches Bear/Notion)
+    "Mod-u": toggleMark(underline),
+    "Mod-e": toggleMark(code),
     "Mod-Shift-s": toggleMark(strikethrough),
 
-    // headings — Notion / Bear standard
+    // headings
     "Mod-Alt-1": setBlockType(heading, { level: 1 }),
     "Mod-Alt-2": setBlockType(heading, { level: 2 }),
     "Mod-Alt-3": setBlockType(heading, { level: 3 }),
     "Mod-Alt-0": setBlockType(paragraph),
 
     // blocks
-    "Mod-Shift-b": wrapIn(blockquote), // blockquote
+    "Mod-Shift-b": wrapIn(blockquote),
     "Mod-Alt-c": setBlockType(code_block),
 
-    // lists — standard across editors
+    // lists
     "Mod-Shift-7": wrapInList(ordered_list),
     "Mod-Shift-8": wrapInList(bullet_list),
     Enter: splitListItem(list_item),
-    "Mod-[": liftListItem(list_item), // outdent
-    "Mod-]": sinkListItem(list_item), // indent
+    "Mod-[": liftListItem(list_item),
+    "Mod-]": sinkListItem(list_item),
 
-    // line break
+    // line break — both Shift-Enter and Cmd-Enter
     "Shift-Enter": insertHardBreak,
+    "Mod-Enter": insertHardBreak,
   });
 }
 
@@ -115,7 +153,10 @@ export function Editor({ initialMarkdown, onChange }: EditorProps) {
     });
 
     syncEmptyClass(viewRef.current);
-    requestAnimationFrame(() => viewRef.current?.focus());
+    requestAnimationFrame(() => {
+      viewRef.current?.focus();
+      mountRef.current?.classList.add("is-mounted");
+    });
 
     return () => {
       viewRef.current?.destroy();

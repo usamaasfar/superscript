@@ -75,6 +75,15 @@ body {
   align-items: center;
   max-width: calc(100vw - 180px);
   pointer-events: auto;
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+
+.app-topbar:hover .app-title-wrap,
+.app-title-wrap.is-untitled,
+.app-title-wrap.is-switching,
+.app-title-wrap:has(.is-editing) {
+  opacity: 1;
 }
 
 .app-title-input {
@@ -92,7 +101,6 @@ body {
   line-height: 1.1;
   text-align: center;
   padding: 0;
-  opacity: 0.62;
   letter-spacing: 0.01em;
 }
 
