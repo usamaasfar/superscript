@@ -132,15 +132,9 @@ function App() {
     [flushSave],
   );
 
-  const newPage = useCallback(
-    async (dir: string) => {
-      await flushSave();
-      const path = newFilePath(dir);
-      await writeTextFile(path, "");
-      const mdFiles = await loadDir(dir);
-      setActivePath(path);
-      setActiveContent("");
-      return mdFiles;
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingSaveRef = useRef<{ path: string | null; content: string } | null>(null);
+  const newPageInProgressRef = useRef(false);
     },
     [flushSave, loadDir],
   );
