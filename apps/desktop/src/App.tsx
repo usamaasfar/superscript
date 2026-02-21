@@ -307,6 +307,14 @@ function App() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [newPage]);
 
+  // Refresh file ordering when opening Cmd+K so list reflects latest mtimes.
+  useEffect(() => {
+    if (!cmdkOpen) return;
+    const dir = localStorage.getItem("rootDir");
+    if (!dir) return;
+    void loadDir(dir).catch(() => {});
+  }, [cmdkOpen, loadDir]);
+
   // Use a ref so the callback always captures the latest activePath without re-creating
   const handleChange = useCallback(
     (markdown: string) => {
