@@ -38,5 +38,5 @@ Version is defined once in the root `package.json`. Tauri reads it directly via 
 
 ## Notes
 
-- Releases are **unsigned** — first launch on macOS requires right-click → Open to bypass Gatekeeper
+- Releases are **signed and notarized** — macOS opens the app immediately with no Gatekeeper prompt
 - The workflow only builds for macOS (aarch64 + x86_64)
