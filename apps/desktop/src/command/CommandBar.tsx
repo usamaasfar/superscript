@@ -15,7 +15,12 @@ export function CommandBar({ files, onSelect, onClose }: Props) {
           <Command.Empty>No files found.</Command.Empty>
           {files.map((path) => {
             const name = path.split(/[\\/]/).pop() || path;
-            const displayName = name.toLowerCase().endsWith(".md") ? name.slice(0, -3) : name;
+            const isCanvas = name.toLowerCase().endsWith(".excalidraw");
+            const displayName = isCanvas
+              ? name.slice(0, -".excalidraw".length)
+              : name.toLowerCase().endsWith(".md")
+                ? name.slice(0, -3)
+                : name;
             return (
               <Command.Item
                 key={path}
@@ -25,7 +30,8 @@ export function CommandBar({ files, onSelect, onClose }: Props) {
                   onClose();
                 }}
               >
-                {displayName}
+                <span className="cmdk-item-name">{displayName}</span>
+                {isCanvas && <span className="cmdk-item-badge">canvas</span>}
               </Command.Item>
             );
           })}

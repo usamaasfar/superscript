@@ -4,6 +4,7 @@ import { getFileStem, getParentDir } from "~/utils/file";
 
 interface UseRenameOptions {
   activePath: string | null;
+  pageType: "markdown" | "canvas";
   files: string[];
   flushSave: () => Promise<void>;
   loadDir: (dir: string) => Promise<string[]>;
@@ -22,8 +23,16 @@ interface UseRenameResult {
   resetRename: () => void;
 }
 
+function getFileExt(path: string | null, pageType: "markdown" | "canvas"): string {
+  if (path?.toLowerCase().endsWith(".excalidraw")) return ".excalidraw";
+  if (path?.toLowerCase().endsWith(".md")) return ".md";
+  // No active path — use pageType to decide extension for new files
+  return pageType === "canvas" ? ".excalidraw" : ".md";
+}
+
 export function useRename({
   activePath,
+  pageType,
   files,
   flushSave,
   loadDir,
@@ -52,7 +61,8 @@ export function useRename({
       return;
     }
 
-    const nextName = nextBase.toLowerCase().endsWith(".md") ? nextBase : `${nextBase}.md`;
+    const ext = getFileExt(activePath, pageType);
+    const nextName = nextBase.toLowerCase().endsWith(ext) ? nextBase : `${nextBase}${ext}`;
 
     if (!activePath) {
       // No active file — create a new empty file with the given name.
@@ -102,7 +112,7 @@ export function useRename({
     } catch {
       // Keep editing state so user can adjust the name.
     }
-  }, [activePath, files, flushSave, loadDir, renameValue, resetRename, setActivePath, setActiveContent, setEditorKey]);
+  }, [activePath, pageType, files, flushSave, loadDir, renameValue, resetRename, setActivePath, setActiveContent, setEditorKey]);
 
   useEffect(() => {
     if (!isRenaming) return;

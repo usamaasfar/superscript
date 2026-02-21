@@ -21,7 +21,7 @@ export function useFileSystem({ cmdkOpen, onFolderLoaded }: UseFileSystemOptions
     const entries = await readDir(dir);
     const withMtime = await Promise.all(
       entries
-        .filter((e) => e.isFile && e.name.toLowerCase().endsWith(".md"))
+        .filter((e) => e.isFile && (e.name.toLowerCase().endsWith(".md") || e.name.toLowerCase().endsWith(".excalidraw")))
         .map(async (e) => {
           const path = `${dir}/${e.name}`;
           try {

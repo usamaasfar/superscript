@@ -12,6 +12,10 @@ export function newFilePath(dir: string) {
   return `${dir}/${dayjs(nextFileTimestamp()).format("YYYY-MM-DD HH.mm.ss.SSS")}.md`;
 }
 
+export function newCanvasPath(dir: string) {
+  return `${dir}/${dayjs(nextFileTimestamp()).format("YYYY-MM-DD HH.mm.ss.SSS")}.excalidraw`;
+}
+
 export function getParentDir(path: string) {
   const index = path.lastIndexOf("/");
   return index > 0 ? path.slice(0, index) : "";
@@ -24,5 +28,7 @@ export function getFileName(path: string) {
 
 export function getFileStem(path: string) {
   const fileName = getFileName(path);
-  return fileName.toLowerCase().endsWith(".md") ? fileName.slice(0, -3) : fileName;
+  if (fileName.toLowerCase().endsWith(".md")) return fileName.slice(0, -3);
+  if (fileName.toLowerCase().endsWith(".excalidraw")) return fileName.slice(0, -".excalidraw".length);
+  return fileName;
 }

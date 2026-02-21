@@ -43,7 +43,14 @@ pub fn run() {
                                 "new-note",
                                 "New Page",
                                 true,
-                                Some("CmdOrCtrl+N"),
+                                Some("CmdOrCtrl+Shift+P"),
+                            )?,
+                            &MenuItem::with_id(
+                                handle,
+                                "new-canvas",
+                                "New Canvas",
+                                true,
+                                Some("CmdOrCtrl+Shift+C"),
                             )?,
                             &PredefinedMenuItem::separator(handle)?,
                             &MenuItem::with_id(
@@ -167,6 +174,7 @@ pub fn run() {
             app.on_menu_event(|app, event| {
                 let payload = match event.id().as_ref() {
                     "new-note" => Some(("new_note", "")),
+                    "new-canvas" => Some(("new_canvas", "")),
                     "change-folder" => Some(("change_folder", "")),
                     "font-default" => Some(("font_change", "default")),
                     "font-baskerville" => Some(("font_change", "classical")),

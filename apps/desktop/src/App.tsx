@@ -2,6 +2,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Canvas } from "~/canvas/Canvas";
 import { CommandBar } from "~/command/CommandBar";
 import { Editor } from "~/editor/Editor";
 import { useAppearance } from "~/hooks/useAppearance";
@@ -10,9 +11,24 @@ import { useFileSystem } from "~/hooks/useFileSystem";
 import { useRename } from "~/hooks/useRename";
 import { getFileStem } from "~/utils/file";
 
+type PageType = "markdown" | "canvas";
+
+function getPageType(path: string | null): PageType {
+  if (path?.toLowerCase().endsWith(".excalidraw")) return "canvas";
+  return "markdown";
+}
+
+function getCurrentTheme(): "light" | "dark" {
+  const attr = document.documentElement.getAttribute("data-theme");
+  if (attr === "light") return "light";
+  if (attr === "dark") return "dark";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
 function App() {
   const [activePath, setActivePath] = useState<string | null>(null);
   const [activeContent, setActiveContent] = useState<string>("");
+  const [pageType, setPageType] = useState<PageType>("markdown");
   const [cmdkOpen, setCmdkOpen] = useState(false);
 
   const editorKeyRef = useRef(0);
@@ -26,6 +42,7 @@ function App() {
   const resetEditor = useCallback(() => {
     setActivePath(null);
     setActiveContent("");
+    setPageType("markdown");
     bumpEditorKey();
   }, [bumpEditorKey]);
 
@@ -38,6 +55,7 @@ function App() {
 
   const { handleChange, flushSave } = useAutoSave({
     activePath,
+    pageType,
     loadDir,
     setActivePath,
   });
@@ -45,6 +63,7 @@ function App() {
   const { isRenaming, renameValue, setRenameValue, renameInputRef, startRename, submitRename, resetRename } = useRename(
     {
       activePath,
+      pageType,
       files,
       flushSave,
       loadDir,
@@ -64,6 +83,7 @@ function App() {
       const content = await readTextFile(path);
       setActivePath(path);
       setActiveContent(content);
+      setPageType(getPageType(path));
       bumpEditorKey();
     },
     [flushSave, bumpEditorKey],
@@ -73,22 +93,36 @@ function App() {
     await flushSave();
     setActivePath(null);
     setActiveContent("");
+    setPageType("markdown");
     bumpEditorKey();
   }, [flushSave, bumpEditorKey]);
 
-  // Tauri event listeners for new note and folder change
+  const newCanvas = useCallback(async () => {
+    await flushSave();
+    setActivePath(null);
+    setActiveContent("");
+    setPageType("canvas");
+    bumpEditorKey();
+  }, [flushSave, bumpEditorKey]);
+
+  // Tauri event listeners for new note, new canvas, and folder change
   useEffect(() => {
     const unlistenChangeFolder = listen("change_folder", () => pickFolder());
     const unlistenNewPage = listen("new_note", () => {
       const dir = localStorage.getItem("rootDir");
       if (dir) newPage();
     });
+    const unlistenNewCanvas = listen("new_canvas", () => {
+      const dir = localStorage.getItem("rootDir");
+      if (dir) newCanvas();
+    });
 
     return () => {
       unlistenChangeFolder.then((f) => f());
       unlistenNewPage.then((f) => f());
+      unlistenNewCanvas.then((f) => f());
     };
-  }, [pickFolder, newPage]);
+  }, [pickFolder, newPage, newCanvas]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -97,10 +131,23 @@ function App() {
         e.preventDefault();
         setCmdkOpen((v) => !v);
       }
-      if (e.key === "n" && (e.metaKey || e.ctrlKey)) {
+      // Cmd+Shift+P → new markdown page
+      if (e.key === "P" && (e.metaKey || e.ctrlKey) && e.shiftKey) {
         e.preventDefault();
         const dir = localStorage.getItem("rootDir");
         if (dir) newPage();
+      }
+      // Cmd+N → new markdown page (kept as alias)
+      if (e.key === "n" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+        e.preventDefault();
+        const dir = localStorage.getItem("rootDir");
+        if (dir) newPage();
+      }
+      // Cmd+Shift+C → new canvas
+      if (e.key === "C" && (e.metaKey || e.ctrlKey) && e.shiftKey) {
+        e.preventDefault();
+        const dir = localStorage.getItem("rootDir");
+        if (dir) newCanvas();
       }
       if (e.key === "Escape") {
         setCmdkOpen(false);
@@ -108,7 +155,7 @@ function App() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [newPage]);
+  }, [newPage, newCanvas]);
 
   const activeFileName = activePath ? getFileStem(activePath) : "Untitled";
   const titleValue = isRenaming ? renameValue : activeFileName;
@@ -150,7 +197,11 @@ function App() {
           />
         </div>
       </div>
-      <Editor key={editorKey} initialMarkdown={activeContent} onChange={handleChange} />
+      {pageType === "canvas" ? (
+        <Canvas key={editorKey} initialData={activeContent} onChange={handleChange} theme={getCurrentTheme()} />
+      ) : (
+        <Editor key={editorKey} initialMarkdown={activeContent} onChange={handleChange} />
+      )}
       {cmdkOpen && <CommandBar files={files} onSelect={openFile} onClose={() => setCmdkOpen(false)} />}
     </div>
   );

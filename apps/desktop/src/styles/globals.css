@@ -103,3 +103,12 @@ body {
 .app-title-input:focus {
   outline: none;
 }
+
+/* ── Canvas (Excalidraw) ──────────────────────────────────── */
+.canvas-mount {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
