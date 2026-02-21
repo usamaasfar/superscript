@@ -1,0 +1,35 @@
+/* ProseMirror editor mount */
+.editor-mount {
+  width: 100%;
+  height: 100%;
+}
+
+/* The editable surface */
+.ProseMirror {
+  min-height: 100%;
+  padding: 48px 64px;
+  outline: none;
+  caret-color: currentColor;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ProseMirror p {
+  margin: 0 0 0.5em;
+}
+
+.ProseMirror p:last-child {
+  margin-bottom: 0;
+}
+
+/* Placeholder when editor is empty */
+.ProseMirror.ProseMirror-empty > p:first-child::before {
+  content: "Start writing…";
+  pointer-events: none;
+  float: left;
+  height: 0;
+  opacity: 0.35;
+}
