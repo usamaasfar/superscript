@@ -13,6 +13,10 @@ export default defineConfig(async () => ({
     alias: { "~": resolve(__dirname, "src") },
   },
 
+  define: {
+    "process.env.IS_PREACT": JSON.stringify("false"),
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent Vite from obscuring rust errors

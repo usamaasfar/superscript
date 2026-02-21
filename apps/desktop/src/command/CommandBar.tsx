@@ -1,4 +1,5 @@
 import { Command } from "cmdk";
+import { getFileStem } from "~/utils/file";
 
 interface Props {
   files: string[];
@@ -15,7 +16,9 @@ export function CommandBar({ files, onSelect, onClose }: Props) {
           <Command.Empty>No files found.</Command.Empty>
           {files.map((path) => {
             const name = path.split(/[\\/]/).pop() || path;
-            const displayName = name.toLowerCase().endsWith(".md") ? name.slice(0, -3) : name;
+            const displayName = getFileStem(path);
+            const isCanvas = path.toLowerCase().endsWith(".excalidraw");
+
             return (
               <Command.Item
                 key={path}
@@ -26,6 +29,7 @@ export function CommandBar({ files, onSelect, onClose }: Props) {
                 }}
               >
                 {displayName}
+                {isCanvas && <span className="opacity-50 ml-2 text-[10px] uppercase tracking-wider">Canvas</span>}
               </Command.Item>
             );
           })}

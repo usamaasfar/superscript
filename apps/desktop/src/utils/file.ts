@@ -8,8 +8,8 @@ function nextFileTimestamp() {
   return lastFileTimestamp;
 }
 
-export function newFilePath(dir: string) {
-  return `${dir}/${dayjs(nextFileTimestamp()).format("YYYY-MM-DD HH.mm.ss.SSS")}.md`;
+export function newFilePath(dir: string, ext = "md") {
+  return `${dir}/${dayjs(nextFileTimestamp()).format("YYYY-MM-DD HH.mm.ss.SSS")}.${ext}`;
 }
 
 export function getParentDir(path: string) {
@@ -24,5 +24,11 @@ export function getFileName(path: string) {
 
 export function getFileStem(path: string) {
   const fileName = getFileName(path);
-  return fileName.toLowerCase().endsWith(".md") ? fileName.slice(0, -3) : fileName;
+  if (fileName.toLowerCase().endsWith(".md")) return fileName.slice(0, -3);
+  if (fileName.toLowerCase().endsWith(".excalidraw")) return fileName.slice(0, -11);
+  return fileName;
+}
+
+export function isExcalidrawFile(path: string) {
+  return path.toLowerCase().endsWith(".excalidraw");
 }

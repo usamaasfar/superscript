@@ -21,7 +21,7 @@ export function useFileSystem({ cmdkOpen, onFolderLoaded }: UseFileSystemOptions
     const entries = await readDir(dir);
     const withMtime = await Promise.all(
       entries
-        .filter((e) => e.isFile && e.name.toLowerCase().endsWith(".md"))
+        .filter((e) => e.isFile && (e.name.toLowerCase().endsWith(".md") || e.name.toLowerCase().endsWith(".excalidraw")))
         .map(async (e) => {
           const path = `${dir}/${e.name}`;
           try {
@@ -33,13 +33,13 @@ export function useFileSystem({ cmdkOpen, onFolderLoaded }: UseFileSystemOptions
         }),
     );
 
-    const mdFiles = withMtime
+    const validFiles = withMtime
       .filter((entry): entry is { path: string; mtime: number } => entry !== null)
       .sort((a, b) => b.mtime - a.mtime)
       .map((entry) => entry.path);
 
-    setFiles(mdFiles);
-    return mdFiles;
+    setFiles(validFiles);
+    return validFiles;
   }, []);
 
   const loadFolder = useCallback(

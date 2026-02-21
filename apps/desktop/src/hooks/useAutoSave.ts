@@ -6,14 +6,15 @@ interface UseAutoSaveOptions {
   activePath: string | null;
   loadDir: (dir: string) => Promise<string[]>;
   setActivePath: (path: string) => void;
+  draftExtension?: string;
 }
 
 interface UseAutoSaveResult {
-  handleChange: (markdown: string) => void;
+  handleChange: (content: string) => void;
   flushSave: () => Promise<void>;
 }
 
-export function useAutoSave({ activePath, loadDir, setActivePath }: UseAutoSaveOptions): UseAutoSaveResult {
+export function useAutoSave({ activePath, loadDir, setActivePath, draftExtension = "md" }: UseAutoSaveOptions): UseAutoSaveResult {
   // Keep a ref in sync with activePath so handleChange always sees the latest value
   const activePathRef = useRef<string | null>(null);
   activePathRef.current = activePath;
@@ -34,12 +35,12 @@ export function useAutoSave({ activePath, loadDir, setActivePath }: UseAutoSaveO
       const dir = localStorage.getItem("rootDir");
       if (!dir) return;
 
-      const path = newFilePath(dir);
+      const path = newFilePath(dir, draftExtension);
       await writeTextFile(path, save.content);
       setActivePath(path);
       await loadDir(dir);
     },
-    [loadDir, setActivePath],
+    [loadDir, setActivePath, draftExtension],
   );
 
   const flushSave = useCallback(async () => {
@@ -69,8 +70,8 @@ export function useAutoSave({ activePath, loadDir, setActivePath }: UseAutoSaveO
   }, [persistSave]);
 
   const handleChange = useCallback(
-    (markdown: string) => {
-      pendingSaveRef.current = { path: activePathRef.current, content: markdown };
+    (content: string) => {
+      pendingSaveRef.current = { path: activePathRef.current, content };
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(async () => {
         saveTimerRef.current = null;
