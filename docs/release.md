@@ -19,9 +19,12 @@ git push --follow-tags
 ```
 
 This triggers the `release-desktop` GitHub Actions workflow, which:
+
 1. Builds `.dmg` and `.app` for both Apple Silicon and Intel
-2. Creates a draft GitHub Release with auto-generated release notes
-3. Uploads both artifacts to the release
+2. Signs each binary with a Developer ID Application certificate
+3. Notarizes the signed app with Apple (Gatekeeper-trusted)
+4. Creates a draft GitHub Release with auto-generated release notes
+5. Uploads both artifacts to the release
 
 ## After the workflow completes
 
@@ -35,5 +38,5 @@ Version is defined once in the root `package.json`. Tauri reads it directly via 
 
 ## Notes
 
-- Releases are **unsigned** — first launch on macOS requires right-click → Open to bypass Gatekeeper
+- Releases are **signed and notarized** — macOS opens the app immediately with no Gatekeeper prompt
 - The workflow only builds for macOS (aarch64 + x86_64)
