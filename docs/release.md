@@ -18,19 +18,17 @@ npm version major
 git push --follow-tags
 ```
 
-This triggers the `release-desktop` GitHub Actions workflow, which:
+This triggers the `Release Desktop` GitHub Actions workflow, which:
 
-1. Builds `.dmg` and `.app` for both Apple Silicon and Intel
+1. Builds `.dmg`, `.app`, and updater artifacts for both Apple Silicon and Intel
 2. Signs each binary with a Developer ID Application certificate
 3. Notarizes the signed app with Apple (Gatekeeper-trusted)
-4. Creates a draft GitHub Release with auto-generated release notes
-5. Uploads both artifacts to the release
+4. Creates a GitHub Release with auto-generated release notes
+5. Uploads all artifacts including a `latest.json` (used by the auto-updater)
 
 ## After the workflow completes
 
-1. Go to the [Releases](../../releases) page on GitHub
-2. Review the draft release and release notes
-3. Publish when ready
+The release publishes automatically. Existing installs will detect the new version on next launch and update silently.
 
 ## Version source
 

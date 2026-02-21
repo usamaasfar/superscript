@@ -83,6 +83,7 @@ jobs:
           tagName: v__VERSION__
           releaseName: v__VERSION__
           generateReleaseNotes: true
+          updaterJsonKeepUniversal: true
           args: --target ${{ matrix.target }} --bundles dmg,app,updater
 
       - name: Cleanup keychain
