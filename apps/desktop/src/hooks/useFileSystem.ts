@@ -86,8 +86,8 @@ export function useFileSystem({ cmdkOpen, onFolderLoaded }: UseFileSystemOptions
       // Try the iCloud "Superscript" folder first
       try {
         const icloudDir = await resolveICloudFolder();
-        localStorage.setItem("rootDir", icloudDir);
         await loadFolder(icloudDir);
+        localStorage.setItem("rootDir", icloudDir);
         return;
       } catch {
         // iCloud unavailable — fall through to manual picker
