@@ -1,5 +1,6 @@
 import { open } from "@tauri-apps/plugin-dialog";
-import { readDir, stat } from "@tauri-apps/plugin-fs";
+import { mkdir, readDir, stat } from "@tauri-apps/plugin-fs";
+import { homeDir } from "@tauri-apps/api/path";
 import { useCallback, useEffect, useState } from "react";
 
 interface UseFileSystemOptions {
@@ -12,6 +13,17 @@ interface UseFileSystemResult {
   loadDir: (dir: string) => Promise<string[]>;
   loadFolder: (dir: string) => Promise<void>;
   pickFolder: () => Promise<void>;
+}
+
+const ICLOUD_RELATIVE = "Library/Mobile Documents/com~apple~CloudDocs/Superscript";
+
+async function resolveICloudFolder(): Promise<string> {
+  const home = await homeDir();
+  const dir = `${home}/${ICLOUD_RELATIVE}`;
+  await mkdir(dir, { recursive: true });
+  // Verify we can actually read it (iCloud may be unavailable)
+  await readDir(dir);
+  return dir;
 }
 
 export function useFileSystem({ cmdkOpen, onFolderLoaded }: UseFileSystemOptions): UseFileSystemResult {
@@ -58,20 +70,30 @@ export function useFileSystem({ cmdkOpen, onFolderLoaded }: UseFileSystemOptions
     await loadFolder(dir);
   }, [loadFolder]);
 
-  // On mount: restore saved folder or prompt for one
+  // On mount: restore saved folder, or try iCloud default, or prompt for one
   useEffect(() => {
     const initialize = async () => {
-      const dir = localStorage.getItem("rootDir");
-      if (dir) {
+      const saved = localStorage.getItem("rootDir");
+      if (saved) {
         try {
-          await loadFolder(dir);
+          await loadFolder(saved);
+          return;
         } catch {
           localStorage.removeItem("rootDir");
-          await pickFolder();
         }
-      } else {
-        await pickFolder();
       }
+
+      // Try the iCloud "Superscript" folder first
+      try {
+        const icloudDir = await resolveICloudFolder();
+        localStorage.setItem("rootDir", icloudDir);
+        await loadFolder(icloudDir);
+        return;
+      } catch {
+        // iCloud unavailable — fall through to manual picker
+      }
+
+      await pickFolder();
     };
     void initialize();
   }, [loadFolder, pickFolder]);
