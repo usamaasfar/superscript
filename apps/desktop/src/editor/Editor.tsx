@@ -76,6 +76,15 @@ function createState(initialMarkdown?: string) {
   });
 }
 
+function isEmptyDoc(state: EditorState) {
+  const first = state.doc.firstChild;
+  return state.doc.childCount === 1 && first?.type === schema.nodes.paragraph && first.content.size === 0;
+}
+
+function syncEmptyClass(view: EditorView) {
+  view.dom.classList.toggle("is-empty", isEmptyDoc(view.state));
+}
+
 interface EditorProps {
   initialMarkdown?: string;
   onChange?: (markdown: string) => void;
@@ -97,11 +106,15 @@ export function Editor({ initialMarkdown, onChange }: EditorProps) {
         const newState = viewRef.current?.state.apply(tr);
         if (!newState) return;
         viewRef.current?.updateState(newState);
+        if (viewRef.current) syncEmptyClass(viewRef.current);
         if (tr.docChanged && onChangeRef.current) {
           onChangeRef.current(serializeMarkdown(newState.doc));
         }
       },
     });
+
+    syncEmptyClass(viewRef.current);
+    requestAnimationFrame(() => viewRef.current?.focus());
 
     return () => {
       viewRef.current?.destroy();

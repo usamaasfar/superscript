@@ -54,7 +54,53 @@ function App() {
   activePathRef.current = activePath;
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingSaveRef = useRef<{ path: string; content: string } | null>(null);
+  const pendingSaveRef = useRef<{ path: string | null; content: string } | null>(null);
+
+  const loadDir = useCallback(async (dir: string) => {
+    const entries = await readDir(dir);
+    const withMtime = await Promise.all(
+      entries
+        .filter((e) => e.isFile && e.name.toLowerCase().endsWith(".md"))
+        .map(async (e) => {
+          const path = `${dir}/${e.name}`;
+          try {
+            const info = await stat(path);
+            return { path, mtime: info.mtime?.getTime() ?? 0 };
+          } catch {
+            return null;
+          }
+        }),
+    );
+
+    const mdFiles = withMtime
+      .filter((entry): entry is { path: string; mtime: number } => entry !== null)
+      .sort((a, b) => b.mtime - a.mtime)
+      .map((entry) => entry.path);
+
+    setFiles(mdFiles);
+    return mdFiles;
+  }, []);
+
+  const persistSave = useCallback(
+    async (save: { path: string | null; content: string }) => {
+      if (save.path) {
+        await writeTextFile(save.path, save.content);
+        return;
+      }
+
+      if (!save.content.trim()) return;
+
+      const dir = localStorage.getItem("rootDir");
+      if (!dir) return;
+
+      const path = newFilePath(dir);
+      setActiveContent(save.content);
+      setActivePath(path);
+      await writeTextFile(path, save.content);
+      await loadDir(dir);
+    },
+    [loadDir],
+  );
 
   const flushSave = useCallback(async () => {
     if (saveTimerRef.current) {
@@ -62,31 +108,11 @@ function App() {
       saveTimerRef.current = null;
     }
     if (pendingSaveRef.current) {
-      const { path, content } = pendingSaveRef.current;
+      const pending = pendingSaveRef.current;
       pendingSaveRef.current = null;
-      await writeTextFile(path, content);
+      await persistSave(pending);
     }
-  }, []);
-
-  const loadDir = useCallback(async (dir: string) => {
-    const entries = await readDir(dir);
-    const mdEntries = entries.filter((e) => e.isFile && e.name.endsWith(".md"));
-
-    const withMtime = await Promise.all(
-      mdEntries.map(async (e) => {
-        const path = `${dir}/${e.name}`;
-        const info = await stat(path);
-        return { path, mtime: info.mtime?.getTime() ?? 0 };
-      }),
-    );
-
-    const mdFiles = withMtime
-      .sort((a, b) => b.mtime - a.mtime)
-      .map((e) => e.path);
-
-    setFiles(mdFiles);
-    return mdFiles;
-  }, []);
+  }, [persistSave]);
 
   const openFile = useCallback(
     async (path: string) => {
@@ -111,34 +137,40 @@ function App() {
     [flushSave, loadDir],
   );
 
+  const loadFolder = useCallback(
+    async (dir: string) => {
+      await loadDir(dir);
+      setActivePath(null);
+      setActiveContent("");
+    },
+    [loadDir],
+  );
+
   const pickFolder = useCallback(async () => {
     const selected = await open({ directory: true, multiple: false });
     if (!selected) return;
     const dir = selected as string;
     localStorage.setItem("rootDir", dir);
-    const mdFiles = await loadDir(dir);
-    if (mdFiles.length > 0) {
-      await openFile(mdFiles[0]);
-    } else {
-      await newPage(dir);
-    }
-  }, [loadDir, openFile, newPage]);
+    await loadFolder(dir);
+  }, [loadFolder]);
 
   // On mount: restore saved folder or prompt for one
   useEffect(() => {
-    const dir = localStorage.getItem("rootDir");
-    if (dir) {
-      loadDir(dir).then(async (mdFiles) => {
-        if (mdFiles.length > 0) {
-          await openFile(mdFiles[0]);
-        } else {
-          await newPage(dir);
+    const initialize = async () => {
+      const dir = localStorage.getItem("rootDir");
+      if (dir) {
+        try {
+          await loadFolder(dir);
+        } catch {
+          localStorage.removeItem("rootDir");
+          await pickFolder();
         }
-      });
-    } else {
-      pickFolder();
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+      } else {
+        await pickFolder();
+      }
+    };
+    void initialize();
+  }, [loadFolder, pickFolder]);
 
   // Tauri event listeners
   useEffect(() => {
@@ -197,18 +229,16 @@ function App() {
 
   // Use a ref so the callback always captures the latest activePath without re-creating
   const handleChange = useCallback((markdown: string) => {
-    const path = activePathRef.current;
-    if (!path) return;
-    pendingSaveRef.current = { path, content: markdown };
+    pendingSaveRef.current = { path: activePathRef.current, content: markdown };
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
       if (pendingSaveRef.current) {
-        const { path: p, content } = pendingSaveRef.current;
+        const pending = pendingSaveRef.current;
         pendingSaveRef.current = null;
-        await writeTextFile(p, content);
+        await persistSave(pending);
       }
     }, 800);
-  }, []);
+  }, [persistSave]);
 
   return (
     <div className="app">

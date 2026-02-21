@@ -20,7 +20,7 @@
 }
 
 /* Placeholder */
-.ProseMirror.ProseMirror-empty > p:first-child::before {
+.ProseMirror.is-empty > p:first-child::before {
   content: "Start writing…";
   pointer-events: none;
   float: left;
