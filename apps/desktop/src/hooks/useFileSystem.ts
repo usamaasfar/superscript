@@ -11,7 +11,6 @@ interface UseFileSystemOptions {
 interface UseFileSystemResult {
   files: string[];
   loadDir: (dir: string) => Promise<string[]>;
-  loadFolder: (dir: string) => Promise<void>;
   pickFolder: () => Promise<void>;
 }
 
@@ -106,5 +105,5 @@ export function useFileSystem({ cmdkOpen, onFolderLoaded }: UseFileSystemOptions
     void loadDir(dir).catch(() => {});
   }, [cmdkOpen, loadDir]);
 
-  return { files, loadDir, loadFolder, pickFolder };
+  return { files, loadDir, pickFolder };
 }
