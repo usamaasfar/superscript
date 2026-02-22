@@ -104,13 +104,42 @@ function App() {
         const dir = localStorage.getItem("rootDir");
         if (dir) newPage();
       }
+      if (e.key === "f" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        const win = getCurrentWindow();
+        win.isFullscreen().then((fs) => win.setFullscreen(!fs));
+      }
       if (e.key === "Escape") {
         setCmdkOpen(false);
+      }
+      // Prevent webview zoom via keyboard (Cmd/Ctrl +/-/=)
+      if ((e.metaKey || e.ctrlKey) && (e.key === "=" || e.key === "-" || e.key === "+")) {
+        e.preventDefault();
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [newPage]);
+
+  // Prevent context menu on app shell (native apps don't show browser context menus)
+  useEffect(() => {
+    function onContextMenu(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      // Allow context menu inside the editor for text editing
+      if (target.closest(".ProseMirror")) return;
+      e.preventDefault();
+    }
+    // Prevent pinch-to-zoom
+    function onWheel(e: WheelEvent) {
+      if (e.ctrlKey || e.metaKey) e.preventDefault();
+    }
+    document.addEventListener("contextmenu", onContextMenu);
+    document.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      document.removeEventListener("contextmenu", onContextMenu);
+      document.removeEventListener("wheel", onWheel);
+    };
+  }, []);
 
   const activeFileName = activePath ? getFileStem(activePath) : "Untitled";
   const titleValue = isRenaming ? renameValue : activeFileName;

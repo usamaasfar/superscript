@@ -23,6 +23,9 @@
   letter-spacing: 0.01em;
   color: inherit;
   word-break: break-word;
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
 }
 
 .ProseMirror.is-empty > p:first-child::before {

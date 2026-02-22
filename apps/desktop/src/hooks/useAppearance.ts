@@ -19,10 +19,13 @@ function setVar(name: string, value: string) {
 }
 
 function setTheme(value: string) {
+  const meta = document.querySelector('meta[name="color-scheme"]');
   if (value === "system") {
     document.documentElement.removeAttribute("data-theme");
+    if (meta) meta.setAttribute("content", "light dark");
   } else {
     document.documentElement.setAttribute("data-theme", value);
+    if (meta) meta.setAttribute("content", value);
   }
 }
 

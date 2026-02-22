@@ -66,11 +66,15 @@ export const caretPlugin = new Plugin({
     activeInstances.set(view, el);
     updateCaret(view, el);
 
+    const onResize = () => requestAnimationFrame(() => updateCaret(view, el));
+    window.addEventListener("resize", onResize);
+
     return {
       update(v) {
         updateCaret(v, el);
       },
       destroy() {
+        window.removeEventListener("resize", onResize);
         el.remove();
         activeInstances.delete(view);
       },
