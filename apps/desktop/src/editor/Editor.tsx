@@ -158,7 +158,19 @@ export function Editor({ initialMarkdown, onChange }: EditorProps) {
       mountRef.current?.classList.add("is-mounted");
     });
 
+    // Refocus editor after fullscreen transitions (resize causes focus loss)
+    const onResize = () => {
+      requestAnimationFrame(() => {
+        const active = document.activeElement;
+        if (viewRef.current && !viewRef.current.hasFocus() && active?.tagName !== "INPUT") {
+          viewRef.current.focus();
+        }
+      });
+    };
+    window.addEventListener("resize", onResize);
+
     return () => {
+      window.removeEventListener("resize", onResize);
       viewRef.current?.destroy();
       viewRef.current = null;
     };
