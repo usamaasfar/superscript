@@ -3,7 +3,7 @@ import type Token from "markdown-it/lib/token.mjs";
 import { defaultMarkdownSerializer, MarkdownParser, MarkdownSerializer } from "prosemirror-markdown";
 import { Schema } from "prosemirror-model";
 
-// schema: CommonMark nodes + strikethrough + underline marks
+// schema: CommonMark nodes + strikethrough mark
 export const schema = new Schema({
   nodes: {
     doc: { content: "block+" },
@@ -164,10 +164,6 @@ export const schema = new Schema({
       toDOM: () => ["s", 0],
       parseDOM: [{ tag: "s" }, { tag: "del" }, { tag: "strike" }],
     },
-    underline: {
-      toDOM: () => ["u", 0],
-      parseDOM: [{ tag: "u" }],
-    },
   },
 });
 
@@ -224,11 +220,10 @@ export const markdownParser = new MarkdownParser(schema, md, {
   s: { mark: "strikethrough" },
 });
 
-// serializer: default + strikethrough → ~~text~~, underline → plain text (no MD syntax)
+// serializer: default + strikethrough → ~~text~~
 export const markdownSerializer = new MarkdownSerializer(defaultMarkdownSerializer.nodes, {
   ...defaultMarkdownSerializer.marks,
   strikethrough: { open: "~~", close: "~~", mixable: true, expelEnclosingWhitespace: true },
-  underline: { open: "", close: "", mixable: true, expelEnclosingWhitespace: true },
 });
 
 export function parseMarkdown(text: string) {

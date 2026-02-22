@@ -63,7 +63,7 @@ function buildInputRules() {
 }
 
 function buildKeymap() {
-  const { strong, em, code, strikethrough, underline } = schema.marks;
+  const { strong, em, code, strikethrough } = schema.marks;
   const { heading, code_block, blockquote, bullet_list, ordered_list, list_item, hard_break, paragraph } = schema.nodes;
 
   const insertHardBreak = chainCommands(exitCode, (state, dispatch) => {
@@ -79,7 +79,6 @@ function buildKeymap() {
     // inline marks
     "Mod-b": toggleMark(strong),
     "Mod-i": toggleMark(em),
-    "Mod-u": toggleMark(underline),
     "Mod-e": toggleMark(code),
     "Mod-Shift-s": toggleMark(strikethrough),
 
