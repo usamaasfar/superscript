@@ -4,6 +4,13 @@ A minimal, distraction-free markdown notes app for macOS built with Tauri v2, Re
 
 ![Superscript](.github/screenshot.png)
 
+## Download
+
+Download the latest release from the [releases page](https://github.com/usamaasfar/superscript/releases/latest).
+
+- **Apple Silicon** — download the `aarch64.dmg`
+- **Intel** — download the `x64.dmg`
+
 ## Keyboard shortcuts
 
 | Shortcut | Action |
