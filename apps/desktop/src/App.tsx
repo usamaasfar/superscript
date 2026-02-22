@@ -110,14 +110,7 @@ function App() {
         win.isFullscreen().then((fs) => win.setFullscreen(!fs));
       }
       if (e.key === "Escape") {
-        if (cmdkOpen) {
-          setCmdkOpen(false);
-        } else {
-          const win = getCurrentWindow();
-          win.isFullscreen().then((fs) => {
-            if (fs) win.setFullscreen(false);
-          });
-        }
+        setCmdkOpen(false);
       }
       // Prevent webview zoom via keyboard (Cmd/Ctrl +/-/=)
       if ((e.metaKey || e.ctrlKey) && (e.key === "=" || e.key === "-" || e.key === "+")) {
@@ -126,7 +119,7 @@ function App() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [newPage, cmdkOpen]);
+  }, [newPage]);
 
   // Prevent context menu on app shell (native apps don't show browser context menus)
   useEffect(() => {

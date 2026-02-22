@@ -6,7 +6,6 @@ import type { MarkType } from "prosemirror-model";
 import { liftListItem, sinkListItem, splitListItem, wrapInList } from "prosemirror-schema-list";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEffect, useRef } from "react";
 import { caretPlugin } from "./plugins/caret";
 import { parseMarkdown, schema, serializeMarkdown } from "./markdown";
@@ -159,23 +158,7 @@ export function Editor({ initialMarkdown, onChange }: EditorProps) {
       mountRef.current?.classList.add("is-mounted");
     });
 
-    // Refocus editor after fullscreen/minimize transitions
-    const refocus = () => {
-      requestAnimationFrame(() => {
-        const active = document.activeElement;
-        if (viewRef.current && !viewRef.current.hasFocus() && active?.tagName !== "INPUT") {
-          viewRef.current.focus();
-        }
-      });
-    };
-    window.addEventListener("resize", refocus);
-    const unlistenFocus = getCurrentWindow().onFocusChanged(({ payload: focused }) => {
-      if (focused) refocus();
-    });
-
     return () => {
-      window.removeEventListener("resize", refocus);
-      unlistenFocus.then((f) => f());
       viewRef.current?.destroy();
       viewRef.current = null;
     };
