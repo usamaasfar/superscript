@@ -8,18 +8,25 @@
   --fg: #1a1a1a;
   --font: Georgia, serif;
   --font-size: 1.0625rem;
+  color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #1a1a1a;
     --fg: #e8e8e8;
+    color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
   --bg: #1a1a1a;
   --fg: #e8e8e8;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 /* ── Base ─────────────────────────────────────────────────── */
@@ -27,6 +34,7 @@ html,
 body,
 #root {
   height: 100%;
+  overscroll-behavior: none;
 }
 
 body {
@@ -34,6 +42,10 @@ body {
   color: var(--fg);
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  cursor: default;
 }
 
 /* ── App shell ────────────────────────────────────────────── */
@@ -43,6 +55,7 @@ body {
   height: 100%;
   overflow-y: auto;
   padding-top: env(titlebar-area-height, 28px);
+  -webkit-user-drag: none;
 }
 
 /* ── Topbar ───────────────────────────────────────────────── */
@@ -110,4 +123,10 @@ body {
 
 .app-title-input:focus {
   outline: none;
+}
+
+/* ── Native feel ─────────────────────────────────────────── */
+img,
+a {
+  -webkit-user-drag: none;
 }
