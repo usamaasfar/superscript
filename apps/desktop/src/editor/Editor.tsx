@@ -6,6 +6,7 @@ import type { MarkType } from "prosemirror-model";
 import { liftListItem, sinkListItem, splitListItem, wrapInList } from "prosemirror-schema-list";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEffect, useRef } from "react";
 import { caretPlugin } from "./plugins/caret";
 import { parseMarkdown, schema, serializeMarkdown } from "./markdown";
@@ -168,11 +169,13 @@ export function Editor({ initialMarkdown, onChange }: EditorProps) {
       });
     };
     window.addEventListener("resize", refocus);
-    window.addEventListener("focus", refocus);
+    const unlistenFocus = getCurrentWindow().onFocusChanged(({ payload: focused }) => {
+      if (focused) refocus();
+    });
 
     return () => {
       window.removeEventListener("resize", refocus);
-      window.removeEventListener("focus", refocus);
+      unlistenFocus.then((f) => f());
       viewRef.current?.destroy();
       viewRef.current = null;
     };
