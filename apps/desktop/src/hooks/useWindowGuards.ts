@@ -1,9 +1,9 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { useEffect } from "react";
+import { type Dispatch, type SetStateAction, useEffect } from "react";
 
 interface UseWindowGuardsOptions {
   newPage: () => Promise<void>;
-  setCmdkOpen: (updater: (v: boolean) => boolean) => void;
+  setCmdkOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 export function useWindowGuards({ newPage, setCmdkOpen }: UseWindowGuardsOptions): void {
@@ -24,7 +24,7 @@ export function useWindowGuards({ newPage, setCmdkOpen }: UseWindowGuardsOptions
         win.isFullscreen().then((fs) => win.setFullscreen(!fs));
       }
       if (e.key === "Escape") {
-        setCmdkOpen(() => false);
+        setCmdkOpen(false);
       }
       // Prevent webview zoom via keyboard (Cmd/Ctrl +/-/=)
       if ((e.metaKey || e.ctrlKey) && (e.key === "=" || e.key === "-" || e.key === "+")) {
