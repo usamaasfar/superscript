@@ -207,6 +207,9 @@ export const markdownParser = new MarkdownParser(schema, md, {
     }),
   },
   hardbreak: { node: "hard_break" },
+  // softbreak is intentionally omitted: prosemirror-markdown's default handler adds a
+  // plain space " " rather than a hard_break node, so soft line breaks in .md source
+  // are never round-tripped back as "  \n" hard-break syntax on save.
   em: { mark: "em" },
   strong: { mark: "strong" },
   link: {
