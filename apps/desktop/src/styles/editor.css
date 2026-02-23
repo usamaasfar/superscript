@@ -1,3 +1,7 @@
+:root {
+  --editor-max-width: 680px;
+}
+
 .editor-mount {
   position: relative;
   width: 100%;
@@ -11,7 +15,7 @@
 }
 
 .ProseMirror {
-  max-width: var(--editor-max-width, 680px);
+  max-width: var(--editor-max-width);
   margin: 0 auto;
   min-height: 100%;
   padding: calc(env(titlebar-area-height, 8px) + 16px) 32px 120px;
