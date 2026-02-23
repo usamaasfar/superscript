@@ -1,3 +1,7 @@
+:root {
+  --editor-max-width: 680px;
+}
+
 .editor-mount {
   position: relative;
   width: 100%;
