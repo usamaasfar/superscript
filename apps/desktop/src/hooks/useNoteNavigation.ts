@@ -13,6 +13,17 @@ interface UseNoteNavigationResult {
   newPage: () => Promise<void>;
 }
 
+function resetScrollPosition() {
+  requestAnimationFrame(() => {
+    const appShell = document.querySelector<HTMLElement>(".app");
+    if (appShell) {
+      appShell.scrollTop = 0;
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "auto" });
+  });
+}
+
 export function useNoteNavigation({
   flushSave,
   setActivePath,
@@ -26,6 +37,7 @@ export function useNoteNavigation({
       setActivePath(path);
       setActiveContent(content);
       bumpEditorKey();
+      resetScrollPosition();
     },
     [flushSave, setActivePath, setActiveContent, bumpEditorKey],
   );
@@ -35,6 +47,7 @@ export function useNoteNavigation({
     setActivePath(null);
     setActiveContent("");
     bumpEditorKey();
+    resetScrollPosition();
   }, [flushSave, setActivePath, setActiveContent, bumpEditorKey]);
 
   return { openFile, newPage };

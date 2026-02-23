@@ -153,6 +153,17 @@ pub fn run() {
                             &PredefinedMenuItem::separator(handle)?,
                             &Submenu::with_id_and_items(
                                 handle,
+                                "width-menu",
+                                "Writing Width",
+                                true,
+                                &[
+                                    &MenuItem::with_id(handle, "width-narrow", "Narrow", true, None::<&str>)?,
+                                    &MenuItem::with_id(handle, "width-wide", "Wide", true, None::<&str>)?,
+                                ],
+                            )?,
+                            &PredefinedMenuItem::separator(handle)?,
+                            &Submenu::with_id_and_items(
+                                handle,
                                 "cursor-menu",
                                 "Cursor",
                                 true,
@@ -192,6 +203,8 @@ pub fn run() {
                     "appearance-system" => Some(("appearance_change", "system")),
                     "appearance-light" => Some(("appearance_change", "light")),
                     "appearance-dark" => Some(("appearance_change", "dark")),
+                    "width-narrow" => Some(("width_change", "narrow")),
+                    "width-wide" => Some(("width_change", "wide")),
                     "cursor-line" => Some(("cursor_change", "line")),
                     "cursor-underline" => Some(("cursor_change", "underline")),
                     _ => None,

@@ -96,6 +96,8 @@ function buildKeymap() {
     "Mod-Shift-7": wrapInList(ordered_list),
     "Mod-Shift-8": wrapInList(bullet_list),
     Enter: splitListItem(list_item),
+    Tab: sinkListItem(list_item),
+    "Shift-Tab": liftListItem(list_item),
     "Mod-[": liftListItem(list_item),
     "Mod-]": sinkListItem(list_item),
 
@@ -140,6 +142,11 @@ export function Editor({ initialMarkdown, onChange }: EditorProps) {
 
     viewRef.current = new EditorView(mountRef.current, {
       state: createState(initialMarkdown),
+      attributes: {
+        autocapitalize: "on",
+        autocorrect: "on",
+        spellcheck: "true",
+      },
       dispatchTransaction(tr) {
         const newState = viewRef.current?.state.apply(tr);
         if (!newState) return;
