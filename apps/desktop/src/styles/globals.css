@@ -8,6 +8,7 @@
   --fg: #1a1a1a;
   --font: Georgia, serif;
   --font-size: 1.0625rem;
+  --editor-max-width: 680px;
   color-scheme: light dark;
 }
 
