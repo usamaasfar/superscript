@@ -107,6 +107,7 @@ jobs:
           projectPath: apps/desktop
           releaseId: ${{ needs.create-release.outputs.release_id }}
           tagName: v__VERSION__
+          releaseDraft: true
           updaterJsonKeepUniversal: true
           args: --target ${{ matrix.target }} --bundles dmg,app,updater
 
