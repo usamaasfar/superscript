@@ -14,6 +14,11 @@ const sizes: Record<string, string> = {
   large: "1.25rem",
 };
 
+const widths: Record<string, string> = {
+  narrow: "680px",
+  wide: "1000px",
+};
+
 function setVar(name: string, value: string) {
   document.documentElement.style.setProperty(name, value);
 }
@@ -32,8 +37,10 @@ function setTheme(value: string) {
 // Apply persisted preferences on startup (runs at module load time, before React mounts)
 const savedFont = fonts[localStorage.getItem("font") ?? "default"] ?? fonts.default;
 const savedSize = sizes[localStorage.getItem("size") ?? "default"] ?? sizes.default;
+const savedWidth = widths[localStorage.getItem("width") ?? "narrow"] ?? widths.narrow;
 setVar("--font", savedFont);
 setVar("--font-size", savedSize);
+setVar("--editor-max-width", savedWidth);
 setTheme(localStorage.getItem("appearance") ?? "system");
 
 export function useAppearance(): void {
@@ -60,12 +67,20 @@ export function useAppearance(): void {
       setCaretStyle(e.payload as CaretStyle);
       localStorage.setItem("cursor", e.payload);
     });
+    const unlistenWidth = listen<string>("width_change", (e) => {
+      const width = widths[e.payload];
+      if (width) {
+        setVar("--editor-max-width", width);
+        localStorage.setItem("width", e.payload);
+      }
+    });
 
     return () => {
       unlistenFont.then((f) => f());
       unlistenAppearance.then((f) => f());
       unlistenSize.then((f) => f());
       unlistenCursor.then((f) => f());
+      unlistenWidth.then((f) => f());
     };
   }, []);
 }
