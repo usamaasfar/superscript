@@ -6,7 +6,41 @@ on:
       - "v*.*.*"
 
 jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      release_id: ${{ steps.create.outputs.id }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find previous tag
+        id: prev_tag
+        run: |
+          PREV_TAG=$(git tag --sort=-version:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sed -n '2p')
+          echo "tag=${PREV_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Create draft release with scoped changelog
+        id: create
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ARGS="--draft --generate-notes"
+          if [ -n "${{ steps.prev_tag.outputs.tag }}" ]; then
+            ARGS="$ARGS --notes-start-tag ${{ steps.prev_tag.outputs.tag }}"
+          fi
+          gh release create "${{ github.ref_name }}" $ARGS \
+            --title "${{ github.ref_name }}" \
+            --repo "${{ github.repository }}"
+          ID=$(gh release view "${{ github.ref_name }}" --json id --jq '.id' --repo "${{ github.repository }}")
+          echo "id=${ID}" >> $GITHUB_OUTPUT
+
   release:
+    needs: create-release
     runs-on: macos-latest
     permissions:
       contents: write
@@ -80,9 +114,8 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: apps/desktop
+          releaseId: ${{ needs.create-release.outputs.release_id }}
           tagName: v__VERSION__
-          releaseName: v__VERSION__
-          generateReleaseNotes: true
           updaterJsonKeepUniversal: true
           args: --target ${{ matrix.target }} --bundles dmg,app,updater
 
@@ -90,3 +123,17 @@ jobs:
         if: always()
         run: |
           security delete-keychain build.keychain 2>/dev/null || true
+
+  publish-release:
+    needs: [create-release, release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit "${{ github.ref_name }}" --draft=false \
+            --repo "${{ github.repository }}"
