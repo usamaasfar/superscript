@@ -83,16 +83,17 @@ export function useRename({
     }
 
     const stem = nextName.slice(0, -3);
-    const baseNextPath = `${dir}/${nextName}`;
-    // Same path as current — no-op.
-    if (baseNextPath === activePath) {
+    // Same path as current — no-op (exact match only; case changes are allowed).
+    if (`${dir}/${nextName}` === activePath) {
       resetRename();
       return;
     }
 
     // Find a collision-free path (exclude the current file so it doesn't block itself).
+    // Always delegate to uniqueFilePath so the collision check is case-insensitive
+    // (consistent with macOS APFS) and the suffix logic lives in one place.
     const otherFiles = files.filter((f) => f !== activePath);
-    const nextPath = otherFiles.includes(baseNextPath) ? uniqueFilePath(dir, stem, otherFiles) : baseNextPath;
+    const nextPath = uniqueFilePath(dir, stem, otherFiles);
 
     // Guard: resolved to same as current — no-op.
     if (nextPath === activePath) {
