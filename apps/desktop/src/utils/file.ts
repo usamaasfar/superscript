@@ -26,3 +26,10 @@ export function getFileStem(path: string) {
   const fileName = getFileName(path);
   return fileName.toLowerCase().endsWith(".md") ? fileName.slice(0, -3) : fileName;
 }
+
+export function generateNameFromContent(content: string): string {
+  const firstLine = content.split("\n")[0].trim();
+  // Remove invalid filename characters
+  const sanitized = firstLine.replace(/[\\/:*?"<>|]/g, "");
+  return sanitized.substring(0, 80).trim();
+}

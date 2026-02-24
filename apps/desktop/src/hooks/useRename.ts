@@ -1,9 +1,10 @@
 import { rename as renameFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getFileStem, getParentDir } from "~/utils/file";
+import { generateNameFromContent, getFileStem, getParentDir } from "~/utils/file";
 
 interface UseRenameOptions {
   activePath: string | null;
+  activeContent: string;
   files: string[];
   flushSave: () => Promise<void>;
   loadDir: (dir: string) => Promise<string[]>;
@@ -24,6 +25,7 @@ interface UseRenameResult {
 
 export function useRename({
   activePath,
+  activeContent,
   files,
   flushSave,
   loadDir,
@@ -46,10 +48,21 @@ export function useRename({
   }, [activePath]);
 
   const submitRename = useCallback(async () => {
-    const nextBase = renameValue.replace(/[\\/]/g, "").trim();
+    let nextBase = renameValue.replace(/[\/]/g, "").trim();
     if (!nextBase) {
       resetRename();
       return;
+    }
+
+    // Handle "Untitled" restriction
+    if (nextBase.toLowerCase() === "untitled") {
+      const generated = generateNameFromContent(activeContent);
+      if (!generated) {
+        // Content is empty or invalid, disallow rename
+        resetRename();
+        return;
+      }
+      nextBase = generated;
     }
 
     const nextName = nextBase.toLowerCase().endsWith(".md") ? nextBase : `${nextBase}.md`;
@@ -102,7 +115,7 @@ export function useRename({
     } catch {
       // Keep editing state so user can adjust the name.
     }
-  }, [activePath, files, flushSave, loadDir, renameValue, resetRename, setActivePath, setActiveContent, setEditorKey]);
+  }, [activePath, activeContent, files, flushSave, loadDir, renameValue, resetRename, setActivePath, setActiveContent, setEditorKey]);
 
   useEffect(() => {
     if (!isRenaming) return;

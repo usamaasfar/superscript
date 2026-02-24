@@ -49,6 +49,7 @@ function App() {
   const { isRenaming, renameValue, setRenameValue, renameInputRef, startRename, submitRename, resetRename } = useRename(
     {
       activePath,
+      activeContent,
       files,
       flushSave,
       loadDir,

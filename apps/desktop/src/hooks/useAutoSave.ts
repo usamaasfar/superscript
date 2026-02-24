@@ -1,6 +1,6 @@
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { useCallback, useRef } from "react";
-import { newFilePath } from "~/utils/file";
+import { generateNameFromContent, newFilePath } from "~/utils/file";
 
 interface UseAutoSaveOptions {
   activePath: string | null;
@@ -34,6 +34,32 @@ export function useAutoSave({ activePath, loadDir, setActivePath }: UseAutoSaveO
       const dir = localStorage.getItem("rootDir");
       if (!dir) return;
 
+      // Try to generate a name from content
+      let name = generateNameFromContent(save.content);
+
+      // If valid name derived from content
+      if (name) {
+        let candidatePath = `${dir}/${name}.md`;
+
+        // Check for collisions
+        // loadDir returns full paths
+        const existingFiles = await loadDir(dir);
+
+        if (existingFiles.includes(candidatePath)) {
+          let counter = 1;
+          while (existingFiles.includes(`${dir}/${name} (${counter}).md`)) {
+            counter++;
+          }
+          candidatePath = `${dir}/${name} (${counter}).md`;
+        }
+
+        await writeTextFile(candidatePath, save.content);
+        setActivePath(candidatePath);
+        await loadDir(dir);
+        return;
+      }
+
+      // Fallback to timestamp if no valid name from content
       const path = newFilePath(dir);
       await writeTextFile(path, save.content);
       setActivePath(path);
