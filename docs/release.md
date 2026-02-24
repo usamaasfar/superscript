@@ -2,20 +2,23 @@
 
 ## How to release
 
-Bump the version and push the tag:
+The version commit must be a single clean commit (e.g. `0.1.4`) containing all pending changes alongside the version bump. Do **not** use `npm version` directly as it only commits `package.json`.
 
 ```bash
-# patch: 0.0.0 → 0.0.1
-npm version patch
+# 1. Bump version in package.json only (no commit, no tag)
+npm version patch --no-git-tag-version   # patch: 0.0.0 → 0.0.1
+npm version minor --no-git-tag-version   # minor: 0.0.0 → 0.1.0
+npm version major --no-git-tag-version   # major: 0.0.0 → 1.0.0
 
-# minor: 0.0.0 → 0.1.0
-npm version minor
+# 2. Stage package.json plus any other pending changes (e.g. Cargo.lock)
+git add package.json apps/desktop/src-tauri/Cargo.lock
 
-# major: 0.0.0 → 1.0.0
-npm version major
+# 3. Commit and tag — commit message is just the version number
+git commit -m "0.1.4"
+git tag v0.1.4
 
-# Push the commit + tag
-git push --follow-tags
+# 4. Push commit and tag
+git push && git push origin v0.1.4
 ```
 
 This triggers the `Release Desktop` GitHub Actions workflow, which:
