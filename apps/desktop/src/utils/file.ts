@@ -28,7 +28,11 @@ export function getFileStem(path: string) {
 }
 
 export function generateNameFromContent(content: string): string {
-  const firstLine = content.split("\n")[0].trim();
+  // Use slice instead of split to avoid creating an array of all lines
+  const index = content.indexOf("\n");
+  const firstLineRaw = index === -1 ? content : content.slice(0, index);
+  const firstLine = firstLineRaw.trim();
+
   // Remove invalid filename characters
   const sanitized = firstLine.replace(/[\\/:*?"<>|]/g, "");
   return sanitized.substring(0, 80).trim();
