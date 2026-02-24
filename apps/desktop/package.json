@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsgo && vite build",
     "preview": "vite preview",
     "tauri": "tauri"
   },
@@ -37,8 +37,8 @@
     "@types/markdown-it": "^14.1.2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@typescript/native-preview": "^7.0.0-dev.20260224.1",
     "@vitejs/plugin-react": "^4.6.0",
-    "typescript": "~5.8.3",
     "vite": "^7.0.4"
   }
 }
