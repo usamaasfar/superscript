@@ -2,6 +2,51 @@ import { rename as renameFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { generateNameFromContent, getFileStem, getParentDir } from "~/utils/file";
 
+/**
+ * useRename Workflow & Edge Cases:
+ *
+ * +---------------------------+
+ * | User submits rename input |
+ * +-------------+-------------+
+ *               |
+ *               v
+ * +-------------------------------+
+ * | Is input "Untitled"? (Case-I) |
+ * +-------------+-----------------+
+ *               |
+ *       +-------+-------+
+ *       |               |
+ *      YES              NO (User explicitly typed a name)
+ *       |               |
+ *       v               v
+ * +-----------+   +-----------------------+
+ * | Has Content?|   | Does file exist?      |
+ * +-----+-----+   +-----------+-----------+
+ *       |                     |
+ *   +---+---+           +-----+-----+
+ *   |       |           |           |
+ *  YES      NO         YES          NO
+ *   |       |           |           |
+ *   v       v           v           v
+ * +---+   +---+       +---+       +---+
+ * | A |   | B |       | C |       | D |
+ * +---+   +---+       +---+       +---+
+ *
+ * A: Generate name from content.
+ *    - IF collision: Auto-resolve by appending (n).
+ *      Example: "Day Log" -> "Day Log (1).md"
+ *    - Save/Rename.
+ *
+ * B: Content is empty/invalid.
+ *    - Action: Block/Revert. Do nothing.
+ *
+ * C: Collision with existing file.
+ *    - Action: Block. Prevent overwrite.
+ *
+ * D: Unique name.
+ *    - Action: Save/Rename.
+ */
+
 interface UseRenameOptions {
   activePath: string | null;
   activeContent: string;
@@ -48,7 +93,7 @@ export function useRename({
   }, [activePath]);
 
   const submitRename = useCallback(async () => {
-    // Correctly escape regex for backslash and forward slash
+    // Sanitize input
     let nextBase = renameValue.replace(/[\\/]/g, "").trim();
     if (!nextBase) {
       resetRename();
@@ -56,21 +101,23 @@ export function useRename({
     }
 
     let isGenerated = false;
-    // Handle "Untitled" restriction
+
+    // CASE A/B: User input is "Untitled"
     if (nextBase.toLowerCase() === "untitled") {
       const generated = generateNameFromContent(activeContent);
       if (!generated) {
-        // Content is empty or invalid, disallow rename
+        // Case B: Content empty -> Block
         resetRename();
         return;
       }
+      // Case A: Use generated name
       nextBase = generated;
       isGenerated = true;
     }
 
     const nextName = nextBase.toLowerCase().endsWith(".md") ? nextBase : `${nextBase}.md`;
 
-    // Helper to find a unique path by appending (n)
+    // Helper to find a unique path by appending (n) for generated names
     const getUniquePath = (dir: string, base: string) => {
       let candidateName = base.toLowerCase().endsWith(".md") ? base : `${base}.md`;
       let candidatePath = `${dir}/${candidateName}`;
@@ -84,7 +131,7 @@ export function useRename({
     };
 
     if (!activePath) {
-      // No active file — create a new empty file with the given name.
+      // Create new file
       const dir = localStorage.getItem("rootDir");
       if (!dir) {
         resetRename();
@@ -95,9 +142,10 @@ export function useRename({
 
       if (files.includes(nextPath)) {
         if (isGenerated) {
+          // Case A (Collision): Auto-resolve
           nextPath = getUniquePath(dir, nextBase);
         } else {
-          // Explicit rename blocked on collision
+          // Case C: Explicit name collision -> Block
           return;
         }
       }
@@ -110,11 +158,12 @@ export function useRename({
         await loadDir(dir);
         resetRename();
       } catch {
-        // Keep editing state so user can adjust the name.
+        // Keep editing state
       }
       return;
     }
 
+    // Rename existing file
     const dir = getParentDir(activePath);
     if (!dir) {
       resetRename();
@@ -127,12 +176,12 @@ export function useRename({
       return;
     }
 
-    // Tauri fs.rename replaces existing files, so block collisions to avoid data loss.
     if (files.includes(nextPath)) {
       if (isGenerated) {
+        // Case A (Collision): Auto-resolve
         nextPath = getUniquePath(dir, nextBase);
       } else {
-        // Explicit rename blocked on collision
+        // Case C: Explicit name collision -> Block
         return;
       }
     }
@@ -144,7 +193,7 @@ export function useRename({
       await loadDir(dir);
       resetRename();
     } catch {
-      // Keep editing state so user can adjust the name.
+      // Keep editing state
     }
   }, [activePath, activeContent, files, flushSave, loadDir, renameValue, resetRename, setActivePath, setActiveContent, setEditorKey]);
 
