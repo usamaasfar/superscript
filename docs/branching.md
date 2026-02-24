@@ -18,7 +18,7 @@ git checkout -b improved-command-bar
 git push -u origin improved-command-bar
 ```
 
-## Stale branch
+## Draft branch
 
 `draft-DD-MM-YYYY` is a holding branch for unreleased changes not tied to any active feature — docs updates, small tweaks, anything not ready to ship yet. The date tells you when it was created.
 
@@ -31,13 +31,16 @@ git add .
 git commit -m "..."
 ```
 
-It's short-lived. When you're ready to release, merge it into your current working branch and delete it.
+It's short-lived. When you're ready to release, merge it into your current working branch then delete it locally and remotely:
 
 ```bash
 git checkout improved-command-bar
 git merge draft-24-02-2026
 git branch -d draft-24-02-2026
+git push origin --delete draft-24-02-2026
 ```
+
+Before any release, always check if a draft branch exists and what it contains. See [`docs/release.md`](release.md) for how that works.
 
 ## Releasing
 

@@ -1,5 +1,32 @@
 # Releasing Superscript
 
+## Before releasing — check for a draft branch
+
+Always check if a `draft-DD-MM-YYYY` branch exists before cutting a release.
+
+```bash
+git branch -a | grep draft
+```
+
+If one exists, list what's in it and ask the user if it should be included in this release:
+
+```bash
+git log main..draft-24-02-2026 --oneline
+```
+
+If the user approves, merge it into the current working branch first, then delete it locally and remotely:
+
+```bash
+git checkout your-working-branch
+git merge draft-24-02-2026
+git branch -d draft-24-02-2026
+git push origin --delete draft-24-02-2026
+```
+
+Then proceed with the release as normal.
+
+---
+
 ## How to release
 
 The version commit must be a single clean commit (e.g. `0.1.4`) containing all pending changes alongside the version bump. Do **not** use `npm version` directly as it only commits `package.json`.
