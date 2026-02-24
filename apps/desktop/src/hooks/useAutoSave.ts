@@ -1,6 +1,6 @@
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { useCallback, useRef } from "react";
-import { generateNameFromContent, newFilePath } from "~/utils/file";
+import { generateNameFromContent } from "~/utils/file";
 
 interface UseAutoSaveOptions {
   activePath: string | null;
@@ -24,18 +24,20 @@ export function useAutoSave({ activePath, loadDir, setActivePath }: UseAutoSaveO
 
   const persistSave = useCallback(
     async (save: { path: string | null; content: string }) => {
+      // If we already have a path (file is saved/named), just save the content
       if (save.path) {
         await writeTextFile(save.path, save.content);
         return;
       }
 
+      // If no path (untitled/unsaved), we try to name it from content
       if (!save.content.trim()) return;
 
       const dir = localStorage.getItem("rootDir");
       if (!dir) return;
 
       // Try to generate a name from content
-      let name = generateNameFromContent(save.content);
+      const name = generateNameFromContent(save.content);
 
       // If valid name derived from content
       if (name) {
@@ -59,11 +61,8 @@ export function useAutoSave({ activePath, loadDir, setActivePath }: UseAutoSaveO
         return;
       }
 
-      // Fallback to timestamp if no valid name from content
-      const path = newFilePath(dir);
-      await writeTextFile(path, save.content);
-      setActivePath(path);
-      await loadDir(dir);
+      // If no valid name could be generated (e.g. content is empty or invalid),
+      // we do NOT save. The file remains "Untitled" and unsaved.
     },
     [loadDir, setActivePath],
   );
