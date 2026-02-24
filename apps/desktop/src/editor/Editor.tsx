@@ -7,8 +7,8 @@ import { liftListItem, sinkListItem, splitListItem, wrapInList } from "prosemirr
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { useEffect, useRef } from "react";
-import { caretPlugin } from "./plugins/caret";
 import { parseMarkdown, schema, serializeMarkdown } from "./markdown";
+import { caretPlugin } from "./plugins/caret";
 
 function markRule(pattern: RegExp, markType: MarkType): InputRule {
   return new InputRule(pattern, (state, match, start, end) => {
@@ -16,11 +16,7 @@ function markRule(pattern: RegExp, markType: MarkType): InputRule {
     const markStart = start + full.indexOf(inner);
     const markEnd = markStart + inner.length;
     const mark = markType.create();
-    const tr = state.tr
-      .addMark(markStart, markEnd, mark)
-      .delete(markEnd, end)
-      .delete(start, markStart)
-      .removeStoredMark(mark);
+    const tr = state.tr.addMark(markStart, markEnd, mark).delete(markEnd, end).delete(start, markStart).removeStoredMark(mark);
     return tr;
   });
 }
@@ -28,10 +24,7 @@ function markRule(pattern: RegExp, markType: MarkType): InputRule {
 function insertHorizontalRule() {
   return new InputRule(/^---$/, (state, _match, start, end) => {
     const { horizontal_rule, paragraph } = schema.nodes;
-    const tr = state.tr.replaceWith(start - 1, end, [
-      horizontal_rule.create(),
-      paragraph.create(),
-    ]);
+    const tr = state.tr.replaceWith(start - 1, end, [horizontal_rule.create(), paragraph.create()]);
     return tr;
   });
 }
@@ -53,11 +46,11 @@ function buildInputRules() {
       ),
       insertHorizontalRule(),
       // inline mark rules
-      markRule(/_([^_]+)_(?=\s|$)/, em),              // _italic_
-      markRule(/\*([^*]+)\*(?=\s|$)/, strong),        // *bold*
+      markRule(/_([^_]+)_(?=\s|$)/, em), // _italic_
+      markRule(/\*([^*]+)\*(?=\s|$)/, strong), // *bold*
       markRule(/~~([^~]+)~~(?=\s|$)/, strikethrough), // ~~strikethrough~~
-      markRule(/~([^~]+)~(?=\s|$)/, strikethrough),   // ~strikethrough~
-      markRule(/`([^`]+)`(?=\s|$)/, code),            // `code`
+      markRule(/~([^~]+)~(?=\s|$)/, strikethrough), // ~strikethrough~
+      markRule(/`([^`]+)`(?=\s|$)/, code), // `code`
     ],
   });
 }
