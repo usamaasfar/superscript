@@ -37,10 +37,12 @@ export function useAutoSave({ activePath, files, loadDir, setActivePath }: UseAu
             const dir = getParentDir(save.path);
             if (dir) {
               const newPath = uniqueFilePath(dir, newStem, filesRef.current);
-              await renameFile(save.path, newPath);
-              await writeTextFile(newPath, save.content);
+              // Update the in-memory path before awaiting I/O so any handleChange
+              // calls during the rename/write sequence use the new path.
               activePathRef.current = newPath;
               setActivePath(newPath);
+              await renameFile(save.path, newPath);
+              await writeTextFile(newPath, save.content);
               await loadDir(dir);
               return;
             }

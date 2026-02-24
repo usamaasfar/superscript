@@ -20,14 +20,16 @@ export function stemFromContent(content: string): string | null {
 }
 
 /** Return a path that does not collide with existingPaths.
- *  Tries `dir/stem.md`, then `dir/stem (2).md`, `dir/stem (3).md`, … */
+ *  Tries `dir/stem.md`, then `dir/stem (2).md`, `dir/stem (3).md`, …
+ *  Comparison is case-insensitive to handle macOS APFS (case-insensitive by default). */
 export function uniqueFilePath(dir: string, stem: string, existingPaths: string[]): string {
+  const lower = existingPaths.map((p) => p.toLowerCase());
   const base = `${dir}/${stem}.md`;
-  if (!existingPaths.includes(base)) return base;
+  if (!lower.includes(base.toLowerCase())) return base;
   let n = 2;
   while (true) {
     const candidate = `${dir}/${stem} (${n}).md`;
-    if (!existingPaths.includes(candidate)) return candidate;
+    if (!lower.includes(candidate.toLowerCase())) return candidate;
     n++;
   }
 }
