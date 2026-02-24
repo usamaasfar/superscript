@@ -106,9 +106,7 @@ body {
   border-radius: 0;
   background: transparent;
   color: var(--fg);
-  font-family:
-    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
   font-size: 0.78rem;
   font-weight: 500;
   line-height: 1.1;

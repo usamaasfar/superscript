@@ -1,6 +1,6 @@
 import { rename as renameFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getFileStem, getParentDir } from "~/utils/file";
+import { getFileStem, getParentDir, uniqueFilePath } from "~/utils/file";
 
 interface UseRenameOptions {
   activePath: string | null;
@@ -61,8 +61,8 @@ export function useRename({
         resetRename();
         return;
       }
-      const nextPath = `${dir}/${nextName}`;
-      if (files.includes(nextPath)) return;
+      const stem = nextName.slice(0, -3);
+      const nextPath = uniqueFilePath(dir, stem, files);
       try {
         await writeTextFile(nextPath, "");
         setActivePath(nextPath);
@@ -82,14 +82,22 @@ export function useRename({
       return;
     }
 
-    const nextPath = `${dir}/${nextName}`;
-    if (nextPath === activePath) {
+    const stem = nextName.slice(0, -3);
+    // Same path as current — no-op (exact match only; case changes are allowed).
+    if (`${dir}/${nextName}` === activePath) {
       resetRename();
       return;
     }
 
-    // Tauri fs.rename replaces existing files, so block collisions to avoid data loss.
-    if (files.includes(nextPath)) {
+    // Find a collision-free path (exclude the current file so it doesn't block itself).
+    // Always delegate to uniqueFilePath so the collision check is case-insensitive
+    // (consistent with macOS APFS) and the suffix logic lives in one place.
+    const otherFiles = files.filter((f) => f !== activePath);
+    const nextPath = uniqueFilePath(dir, stem, otherFiles);
+
+    // Guard: resolved to same as current — no-op.
+    if (nextPath === activePath) {
+      resetRename();
       return;
     }
 

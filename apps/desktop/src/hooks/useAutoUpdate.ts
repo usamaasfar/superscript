@@ -6,7 +6,11 @@ export function useAutoUpdate(): void {
   useEffect(() => {
     check()
       .then((update) => {
-        if (update) update.downloadAndInstall().then(() => relaunch()).catch(console.error);
+        if (update)
+          update
+            .downloadAndInstall()
+            .then(() => relaunch())
+            .catch(console.error);
       })
       .catch(console.error);
   }, []);

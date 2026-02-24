@@ -1,15 +1,37 @@
-import dayjs from "dayjs";
+const MAX_STEM_LENGTH = 50;
 
-let lastFileTimestamp = 0;
-
-function nextFileTimestamp() {
-  const now = Date.now();
-  lastFileTimestamp = now > lastFileTimestamp ? now : lastFileTimestamp + 1;
-  return lastFileTimestamp;
+/** Derive a filename stem from the first non-empty line of content.
+ *  Strips markdown heading markers, invalid filename chars, and truncates
+ *  at a word boundary so no word is half-cut. Returns null when nothing
+ *  usable is found. */
+export function stemFromContent(content: string): string | null {
+  for (const line of content.split("\n")) {
+    const cleaned = line
+      .replace(/^#+\s*/, "")
+      .replace(/[/\\:*?"<>|]/g, "")
+      .trim();
+    if (!cleaned) continue;
+    if (cleaned.length <= MAX_STEM_LENGTH) return cleaned;
+    const truncated = cleaned.slice(0, MAX_STEM_LENGTH);
+    const lastSpace = truncated.lastIndexOf(" ");
+    return lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated;
+  }
+  return null;
 }
 
-export function newFilePath(dir: string) {
-  return `${dir}/${dayjs(nextFileTimestamp()).format("YYYY-MM-DD HH.mm.ss.SSS")}.md`;
+/** Return a path that does not collide with existingPaths.
+ *  Tries `dir/stem.md`, then `dir/stem (2).md`, `dir/stem (3).md`, …
+ *  Comparison is case-insensitive to handle macOS APFS (case-insensitive by default). */
+export function uniqueFilePath(dir: string, stem: string, existingPaths: string[]): string {
+  const lower = existingPaths.map((p) => p.toLowerCase());
+  const base = `${dir}/${stem}.md`;
+  if (!lower.includes(base.toLowerCase())) return base;
+  let n = 2;
+  while (true) {
+    const candidate = `${dir}/${stem} (${n}).md`;
+    if (!lower.includes(candidate.toLowerCase())) return candidate;
+    n++;
+  }
 }
 
 export function getParentDir(path: string) {
