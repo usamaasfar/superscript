@@ -123,6 +123,11 @@ interface EditorProps {
   onChange?: (markdown: string) => void;
 }
 
+function getSpellcheckLanguage() {
+  if (typeof navigator === "undefined") return "en-US";
+  return navigator.languages?.[0] ?? navigator.language ?? "en-US";
+}
+
 export function Editor({ initialMarkdown, onChange }: EditorProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -138,6 +143,7 @@ export function Editor({ initialMarkdown, onChange }: EditorProps) {
       attributes: {
         autocapitalize: "on",
         autocorrect: "on",
+        lang: getSpellcheckLanguage(),
         spellcheck: "true",
       },
       dispatchTransaction(tr) {
