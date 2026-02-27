@@ -2,7 +2,7 @@ import { baseKeymap, chainCommands, exitCode, setBlockType, toggleMark, wrapIn }
 import { history, redo, undo } from "prosemirror-history";
 import { InputRule, inputRules, textblockTypeInputRule, wrappingInputRule } from "prosemirror-inputrules";
 import { keymap } from "prosemirror-keymap";
-import type { MarkType } from "prosemirror-model";
+import type { MarkType, Node } from "prosemirror-model";
 import { liftListItem, sinkListItem, splitListItem, wrapInList } from "prosemirror-schema-list";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
@@ -29,6 +29,22 @@ function insertHorizontalRule() {
   });
 }
 
+// converts `[ ] ` or `[x] ` at the start of a list_item into a task_item
+function taskListRule() {
+  const { list_item, task_item } = schema.nodes;
+  return new InputRule(/^\[([ xX])\] $/, (state, match, start, end) => {
+    const $start = state.doc.resolve(start);
+    for (let d = $start.depth; d > 0; d--) {
+      if ($start.node(d).type !== list_item) continue;
+      const itemPos = $start.before(d);
+      const tr = state.tr.delete(start, end);
+      tr.setNodeMarkup(tr.mapping.map(itemPos), task_item, { checked: match[1] !== " " });
+      return tr;
+    }
+    return null;
+  });
+}
+
 function buildInputRules() {
   const { strong, em, code, strikethrough } = schema.marks;
   return inputRules({
@@ -45,6 +61,7 @@ function buildInputRules() {
         (match, node) => node.childCount + node.attrs.order === +match[1],
       ),
       insertHorizontalRule(),
+      taskListRule(),
       // inline mark rules
       markRule(/_([^_]+)_(?=\s|$)/, em), // _italic_
       markRule(/\*([^*]+)\*(?=\s|$)/, strong), // *bold*
@@ -57,7 +74,7 @@ function buildInputRules() {
 
 function buildKeymap() {
   const { strong, em, code, strikethrough } = schema.marks;
-  const { heading, code_block, blockquote, bullet_list, ordered_list, list_item, hard_break, paragraph } = schema.nodes;
+  const { heading, code_block, blockquote, bullet_list, ordered_list, list_item, task_item, hard_break, paragraph } = schema.nodes;
 
   const insertHardBreak = chainCommands(exitCode, (state, dispatch) => {
     if (dispatch) dispatch(state.tr.replaceSelectionWith(hard_break.create()).scrollIntoView());
@@ -88,11 +105,11 @@ function buildKeymap() {
     // lists
     "Mod-Shift-7": wrapInList(ordered_list),
     "Mod-Shift-8": wrapInList(bullet_list),
-    Enter: splitListItem(list_item),
-    Tab: sinkListItem(list_item),
-    "Shift-Tab": liftListItem(list_item),
-    "Mod-[": liftListItem(list_item),
-    "Mod-]": sinkListItem(list_item),
+    Enter: chainCommands(splitListItem(task_item), splitListItem(list_item)),
+    Tab: chainCommands(sinkListItem(task_item), sinkListItem(list_item)),
+    "Shift-Tab": chainCommands(liftListItem(task_item), liftListItem(list_item)),
+    "Mod-[": chainCommands(liftListItem(task_item), liftListItem(list_item)),
+    "Mod-]": chainCommands(sinkListItem(task_item), sinkListItem(list_item)),
 
     // line break — both Shift-Enter and Cmd-Enter
     "Shift-Enter": insertHardBreak,
@@ -107,6 +124,42 @@ function createState(initialMarkdown?: string) {
     doc,
     plugins: [history(), buildInputRules(), buildKeymap(), keymap(baseKeymap), caretPlugin],
   });
+}
+
+function taskItemView(node: Node, view: EditorView, getPos: () => number | undefined) {
+  const dom = document.createElement("li");
+  dom.dataset.task = node.attrs.checked ? "true" : "false";
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = node.attrs.checked as boolean;
+  checkbox.setAttribute("contenteditable", "false");
+  checkbox.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    const pos = getPos();
+    if (pos === undefined) return;
+    view.dispatch(view.state.tr.setNodeMarkup(pos, null, { checked: !checkbox.checked }));
+  });
+  checkbox.addEventListener("change", () => {
+    const pos = getPos();
+    if (pos === undefined) return;
+    view.dispatch(view.state.tr.setNodeMarkup(pos, null, { checked: checkbox.checked }));
+  });
+
+  const contentDOM = document.createElement("span");
+  dom.appendChild(checkbox);
+  dom.appendChild(contentDOM);
+
+  return {
+    dom,
+    contentDOM,
+    update(updatedNode: Node) {
+      if (updatedNode.type !== schema.nodes.task_item) return false;
+      checkbox.checked = updatedNode.attrs.checked as boolean;
+      dom.dataset.task = updatedNode.attrs.checked ? "true" : "false";
+      return true;
+    },
+  };
 }
 
 function isEmptyDoc(state: EditorState) {
@@ -140,6 +193,7 @@ export function Editor({ initialMarkdown, onChange }: EditorProps) {
 
     viewRef.current = new EditorView(mountRef.current, {
       state: createState(initialMarkdown),
+      nodeViews: { task_item: taskItemView },
       attributes: {
         autocapitalize: "on",
         autocorrect: "on",

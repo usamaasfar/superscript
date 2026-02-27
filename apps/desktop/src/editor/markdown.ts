@@ -62,7 +62,7 @@ export const schema = new Schema({
     },
 
     bullet_list: {
-      content: "list_item+",
+      content: "(list_item | task_item)+",
       group: "block",
       attrs: { tight: { default: false } },
       toDOM: (node) => ["ul", { "data-tight": node.attrs.tight ? "true" : null }, 0],
@@ -102,6 +102,19 @@ export const schema = new Schema({
       defining: true,
       toDOM: () => ["li", 0],
       parseDOM: [{ tag: "li" }],
+    },
+
+    task_item: {
+      attrs: { checked: { default: false } },
+      content: "paragraph block*",
+      defining: true,
+      toDOM: (node) => ["li", { "data-task": node.attrs.checked ? "true" : "false" }, 0],
+      parseDOM: [
+        {
+          tag: "li[data-task]",
+          getAttrs: (dom) => ({ checked: (dom as HTMLElement).getAttribute("data-task") === "true" }),
+        },
+      ],
     },
 
     text: { group: "inline" },
@@ -175,10 +188,45 @@ function listIsTight(tokens: Token[], i: number) {
 // parser: CommonMark + strikethrough (~~text~~)
 const md = MarkdownIt("commonmark", { html: false }).enable("strikethrough");
 
+// core rule: detect GFM task list items (- [ ] / - [x]) and rename their tokens
+md.core.ruler.push("task_list", (state) => {
+  const tokens = state.tokens;
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i].type !== "list_item_open") continue;
+    // find the first inline token inside this list item
+    for (let j = i + 1; j < tokens.length; j++) {
+      const t = tokens[j].type;
+      if (t === "list_item_close") break;
+      if (t !== "inline") continue;
+      const children = tokens[j].children;
+      if (!children?.length || children[0].type !== "text") break;
+      const m = /^\[([ xX])\] /.exec(children[0].content);
+      if (!m) break;
+      // rename to task_item_open / task_item_close
+      tokens[i].type = "task_item_open";
+      tokens[i].attrSet("data-task", m[1] !== " " ? "true" : "false");
+      let depth = 0;
+      for (let k = i + 1; k < tokens.length; k++) {
+        if (tokens[k].type === "list_item_open") depth++;
+        else if (tokens[k].type === "list_item_close") {
+          if (depth === 0) { tokens[k].type = "task_item_close"; break; }
+          depth--;
+        }
+      }
+      children[0].content = children[0].content.slice(m[0].length);
+      break;
+    }
+  }
+});
+
 export const markdownParser = new MarkdownParser(schema, md, {
   blockquote: { block: "blockquote" },
   paragraph: { block: "paragraph" },
   list_item: { block: "list_item" },
+  task_item: {
+    block: "task_item",
+    getAttrs: (tok: Token) => ({ checked: tok.attrGet("data-task") === "true" }),
+  },
   bullet_list: {
     block: "bullet_list",
     getAttrs: (_: unknown, tokens: Token[], i: number) => ({ tight: listIsTight(tokens, i) }),
@@ -223,11 +271,20 @@ export const markdownParser = new MarkdownParser(schema, md, {
   s: { mark: "strikethrough" },
 });
 
-// serializer: default + strikethrough → ~~text~~
-export const markdownSerializer = new MarkdownSerializer(defaultMarkdownSerializer.nodes, {
-  ...defaultMarkdownSerializer.marks,
-  strikethrough: { open: "~~", close: "~~", mixable: true, expelEnclosingWhitespace: true },
-});
+// serializer: default + strikethrough → ~~text~~ + task_item → - [ ] / - [x]
+export const markdownSerializer = new MarkdownSerializer(
+  {
+    ...defaultMarkdownSerializer.nodes,
+    task_item: (state, node) => {
+      state.write(node.attrs.checked ? "[x] " : "[ ] ");
+      state.renderContent(node);
+    },
+  },
+  {
+    ...defaultMarkdownSerializer.marks,
+    strikethrough: { open: "~~", close: "~~", mixable: true, expelEnclosingWhitespace: true },
+  },
+);
 
 export function parseMarkdown(text: string) {
   return markdownParser.parse(text);
