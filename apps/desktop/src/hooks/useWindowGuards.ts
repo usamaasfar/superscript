@@ -2,13 +2,17 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { type Dispatch, type SetStateAction, useEffect } from "react";
 
 interface UseWindowGuardsOptions {
+  deletePage: () => Promise<void>;
   newPage: () => Promise<void>;
   setCmdkOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-export function useWindowGuards({ newPage, setCmdkOpen }: UseWindowGuardsOptions): void {
+export function useWindowGuards({ deletePage, newPage, setCmdkOpen }: UseWindowGuardsOptions): void {
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      const typingInInput = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         setCmdkOpen((v) => !v);
@@ -23,6 +27,10 @@ export function useWindowGuards({ newPage, setCmdkOpen }: UseWindowGuardsOptions
         const win = getCurrentWindow();
         win.isFullscreen().then((fs) => win.setFullscreen(!fs));
       }
+      if (e.metaKey && e.key === "Backspace" && !e.repeat && !typingInInput) {
+        e.preventDefault();
+        void deletePage();
+      }
       if (e.key === "Escape") {
         setCmdkOpen(false);
       }
@@ -33,7 +41,7 @@ export function useWindowGuards({ newPage, setCmdkOpen }: UseWindowGuardsOptions
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [newPage, setCmdkOpen]);
+  }, [deletePage, newPage, setCmdkOpen]);
 
   useEffect(() => {
     function onContextMenu(e: MouseEvent) {

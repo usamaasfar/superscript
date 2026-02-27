@@ -61,15 +61,18 @@ function App() {
     },
   });
 
-  const { openFile, newPage } = useNoteNavigation({
+  const { deletePage, openFile, newPage } = useNoteNavigation({
+    activePath,
+    files,
     flushSave,
+    loadDir,
     setActivePath,
     setActiveContent,
     bumpEditorKey,
   });
 
   useMenuEvents({ pickFolder, newPage });
-  useWindowGuards({ newPage, setCmdkOpen });
+  useWindowGuards({ deletePage, newPage, setCmdkOpen });
 
   const activeFileName = activePath ? getFileStem(activePath) : "Untitled";
   const titleValue = isRenaming ? renameValue : activeFileName;
