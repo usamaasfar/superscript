@@ -1,21 +1,51 @@
 # Releasing Superscript
 
-## How to release
+## Before releasing — check for a draft branch
 
-Bump the version and push the tag:
+Always check if a `draft-DD-MM-YYYY` branch exists before cutting a release.
 
 ```bash
-# patch: 0.0.0 → 0.0.1
-npm version patch
+git branch -a | grep draft
+```
 
-# minor: 0.0.0 → 0.1.0
-npm version minor
+If one exists, list what's in it and ask the user if it should be included in this release:
 
-# major: 0.0.0 → 1.0.0
-npm version major
+```bash
+git log main..draft-24-02-2026 --oneline
+```
 
-# Push the commit + tag
-git push --follow-tags
+If the user approves, merge it into the current working branch first, then delete it locally and remotely:
+
+```bash
+git checkout your-working-branch
+git merge draft-24-02-2026
+git branch -d draft-24-02-2026
+git push origin --delete draft-24-02-2026
+```
+
+Then proceed with the release as normal.
+
+---
+
+## How to release
+
+The version commit must be a single clean commit (e.g. `0.1.4`) containing all pending changes alongside the version bump. Do **not** use `npm version` directly as it only commits `package.json`.
+
+```bash
+# 1. Bump version in package.json only (no commit, no tag)
+npm version patch --no-git-tag-version   # patch: 0.0.0 → 0.0.1
+npm version minor --no-git-tag-version   # minor: 0.0.0 → 0.1.0
+npm version major --no-git-tag-version   # major: 0.0.0 → 1.0.0
+
+# 2. Stage package.json plus any other pending changes (e.g. Cargo.lock)
+git add package.json apps/desktop/src-tauri/Cargo.lock
+
+# 3. Commit and tag — commit message is just the version number
+git commit -m "0.1.4"
+git tag v0.1.4
+
+# 4. Push commit and tag
+git push && git push origin v0.1.4
 ```
 
 This triggers the `Release Desktop` GitHub Actions workflow, which:
