@@ -201,7 +201,7 @@ md.core.ruler.push("task_list", (state) => {
       if (t !== "inline") continue;
       const children = tokens[j].children;
       if (!children?.length || children[0].type !== "text") break;
-      const m = /^\[([ xX])\] /.exec(children[0].content);
+      const m = /^\[([ xX])\] ?/.exec(children[0].content);
       if (!m) break;
       // rename to task_item_open / task_item_close
       tokens[i].type = "task_item_open";
