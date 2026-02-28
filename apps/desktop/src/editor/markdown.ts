@@ -64,7 +64,7 @@ export const schema = new Schema({
     bullet_list: {
       content: "(list_item | task_item)+",
       group: "block",
-      attrs: { tight: { default: false } },
+      attrs: { tight: { default: false }, bullet: { default: "-" } },
       toDOM: (node) => ["ul", { "data-tight": node.attrs.tight ? "true" : null }, 0],
       parseDOM: [
         {
@@ -181,7 +181,8 @@ export const schema = new Schema({
 });
 
 function listIsTight(tokens: Token[], i: number) {
-  while (++i < tokens.length) if (tokens[i].type !== "list_item_open") return tokens[i].hidden;
+  while (++i < tokens.length)
+    if (tokens[i].type !== "list_item_open" && tokens[i].type !== "task_item_open") return tokens[i].hidden;
   return false;
 }
 
@@ -229,7 +230,7 @@ export const markdownParser = new MarkdownParser(schema, md, {
   },
   bullet_list: {
     block: "bullet_list",
-    getAttrs: (_: unknown, tokens: Token[], i: number) => ({ tight: listIsTight(tokens, i) }),
+    getAttrs: (tok: Token, tokens: Token[], i: number) => ({ tight: listIsTight(tokens, i), bullet: tok.markup }),
   },
   ordered_list: {
     block: "ordered_list",
