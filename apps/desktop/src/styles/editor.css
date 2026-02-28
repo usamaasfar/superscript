@@ -151,7 +151,30 @@
   border-radius: 2px;
 }
 
-/* ── Custom caret ──────────────────────────────────────────── */
+/* Task list */
+.ProseMirror ul:has(li[data-task]) {
+  list-style: none;
+  padding-left: 0.25em;
+}
+
+.ProseMirror li[data-task] {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em;
+  list-style: none;
+}
+
+.ProseMirror li[data-task] > input[type="checkbox"] {
+  flex-shrink: 0;
+  margin-top: 0.3em;
+  cursor: pointer;
+  accent-color: currentColor;
+}
+
+.ProseMirror li[data-task="true"] > span {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
 .pm-caret {
   position: absolute;
   background: currentColor;
