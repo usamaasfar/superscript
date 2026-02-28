@@ -49,6 +49,13 @@ pub fn run() {
                                 true,
                                 Some("CmdOrCtrl+N"),
                             )?,
+                            &MenuItem::with_id(
+                                handle,
+                                "delete-page",
+                                "Delete Page",
+                                true,
+                                Some("CmdOrCtrl+Backspace"),
+                            )?,
                             &PredefinedMenuItem::separator(handle)?,
                             &MenuItem::with_id(
                                 handle,
@@ -193,6 +200,7 @@ pub fn run() {
             app.on_menu_event(|app, event| {
                 let payload = match event.id().as_ref() {
                     "new-note" => Some(("new_note", "")),
+                    "delete-page" => Some(("delete_page", "")),
                     "change-folder" => Some(("change_folder", "")),
                     "font-default" => Some(("font_change", "default")),
                     "font-baskerville" => Some(("font_change", "classical")),

@@ -71,7 +71,7 @@ function App() {
     bumpEditorKey,
   });
 
-  useMenuEvents({ pickFolder, newPage });
+  useMenuEvents({ pickFolder, newPage, deletePage });
   useWindowGuards({ deletePage, newPage, setCmdkOpen });
 
   const activeFileName = activePath ? getFileStem(activePath) : "Untitled";
