@@ -1,6 +1,6 @@
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem, Submenu},
-    Emitter,
+    Emitter, Manager,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -179,6 +179,17 @@ pub fn run() {
                                     &MenuItem::with_id(handle, "cursor-underline", "Underline", true, None::<&str>)?,
                                 ],
                             )?,
+                            &PredefinedMenuItem::separator(handle)?,
+                            &Submenu::with_id_and_items(
+                                handle,
+                                "haptic-menu",
+                                "Haptic Feedback",
+                                true,
+                                &[
+                                    &MenuItem::with_id(handle, "haptic-on", "On", true, None::<&str>)?,
+                                    &MenuItem::with_id(handle, "haptic-off", "Off", true, None::<&str>)?,
+                                ],
+                            )?,
                         ],
                     )?,
                     &Submenu::with_id_and_items(
@@ -215,6 +226,8 @@ pub fn run() {
                     "width-wide" => Some(("width_change", "wide")),
                     "cursor-line" => Some(("cursor_change", "line")),
                     "cursor-underline" => Some(("cursor_change", "underline")),
+                    "haptic-on" => Some(("haptic_change", "on")),
+                    "haptic-off" => Some(("haptic_change", "off")),
                     _ => None,
                 };
                 if let Some((event_name, value)) = payload {

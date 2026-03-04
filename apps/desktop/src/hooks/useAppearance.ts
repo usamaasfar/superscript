@@ -1,6 +1,7 @@
 import { listen } from "@tauri-apps/api/event";
 import { useEffect } from "react";
 import { type CaretStyle, setCaretStyle } from "~/editor/plugins/caret";
+import { setHapticsEnabled } from "~/editor/plugins/haptics";
 
 const fonts: Record<string, string> = {
   default: "Georgia, serif",
@@ -74,6 +75,10 @@ export function useAppearance(): void {
         localStorage.setItem("width", e.payload);
       }
     });
+    const unlistenHaptics = listen<string>("haptic_change", (e) => {
+      setHapticsEnabled(e.payload === "on");
+      localStorage.setItem("haptics", e.payload);
+    });
 
     return () => {
       unlistenFont.then((f) => f());
@@ -81,6 +86,7 @@ export function useAppearance(): void {
       unlistenSize.then((f) => f());
       unlistenCursor.then((f) => f());
       unlistenWidth.then((f) => f());
+      unlistenHaptics.then((f) => f());
     };
   }, []);
 }
