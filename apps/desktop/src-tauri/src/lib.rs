@@ -1,6 +1,6 @@
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem, Submenu},
-    Emitter,
+    Emitter, Manager,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

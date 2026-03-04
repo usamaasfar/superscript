@@ -2,18 +2,13 @@ import { WebHaptics } from "web-haptics";
 
 let hapticsEnabled = localStorage.getItem("haptics") === "on";
 
-const haptics = new WebHaptics();
+const haptics = new WebHaptics({ debug: true });
 
 export function setHapticsEnabled(enabled: boolean) {
   hapticsEnabled = enabled;
 }
 
-export function triggerTypingHaptic() {
+export function triggerHaptic() {
   if (!hapticsEnabled) return;
   haptics.trigger([{ duration: 40 }]);
-}
-
-export function triggerDeleteHaptic() {
-  if (!hapticsEnabled) return;
-  haptics.trigger([{ duration: 1000 }], { intensity: 1 });
 }
