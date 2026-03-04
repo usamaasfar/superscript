@@ -9,7 +9,7 @@ import { EditorView } from "prosemirror-view";
 import { useEffect, useRef } from "react";
 import { parseMarkdown, schema, serializeMarkdown } from "./markdown";
 import { caretPlugin } from "./plugins/caret";
-import { triggerHaptic } from "./plugins/haptics";
+import { triggerDeleteHaptic, triggerTypingHaptic } from "./plugins/haptics";
 
 function markRule(pattern: RegExp, markType: MarkType): InputRule {
   return new InputRule(pattern, (state, match, start, end) => {
@@ -156,8 +156,13 @@ export function Editor({ initialMarkdown, onChange }: EditorProps) {
           onChangeRef.current(serializeMarkdown(newState.doc));
         }
       },
-      handleKeyDown(_view, _event) {
-        triggerHaptic();
+      handleKeyDown(_view, event) {
+        if (event.metaKey || event.ctrlKey || event.altKey) return false;
+        if (event.key === "Backspace" || event.key === "Delete") {
+          triggerDeleteHaptic();
+        } else if (event.key.length === 1) {
+          triggerTypingHaptic();
+        }
         return false;
       },
     });
