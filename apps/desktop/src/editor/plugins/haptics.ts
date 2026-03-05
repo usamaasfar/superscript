@@ -2,7 +2,7 @@ import { WebHaptics } from "web-haptics";
 
 let hapticsEnabled = localStorage.getItem("haptics") === "on";
 
-const haptics = new WebHaptics({ debug: import.meta.env.DEV });
+const haptics = new WebHaptics({ debug: true });
 
 export function setHapticsEnabled(enabled: boolean) {
   hapticsEnabled = enabled;
